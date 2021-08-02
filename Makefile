@@ -1,5 +1,8 @@
 
-.PHONY: test vet lint sec clean
+.PHONY: fmt test vet lint sec clean
+
+fmt:
+	go fmt ./...
 
 clean:
 	rm -rf ./reports
