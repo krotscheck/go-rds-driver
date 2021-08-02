@@ -82,7 +82,7 @@ func (r *Connection) Begin() (driver.Tx, error) {
 // or return an error if it is not supported.
 func (r *Connection) BeginTx(ctx context.Context, opts driver.TxOptions) (driver.Tx, error) {
 	// Assume that the underlying database supports all isolation levels.
-	if _, ok := supportedIsolationLevels[opts.Isolation]; !ok {
+	if _, ok := SupportedIsolationLevels[opts.Isolation]; !ok {
 		return nil, fmt.Errorf("isolation level %d not supported", opts.Isolation)
 	}
 	rw := "READ WRITE"
@@ -169,7 +169,7 @@ func (r *Connection) executeStatement(ctx context.Context, query string, args []
 	if r.tx != nil {
 		txID = r.tx.transactionID
 	}
-	params, err := convertNamedValues(args)
+	params, err := ConvertNamedValues(args)
 	if err != nil {
 		return nil, err
 	}

@@ -8,10 +8,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
 )
 
-func convertNamedValues(args []driver.NamedValue) ([]*rdsdataservice.SqlParameter, error) {
+func ConvertNamedValues(args []driver.NamedValue) ([]*rdsdataservice.SqlParameter, error) {
 	var params = make([]*rdsdataservice.SqlParameter, len(args))
 	for i, arg := range args {
-		sqlParam, err := convertNamedValue(arg)
+		sqlParam, err := ConvertNamedValue(arg)
 		if err != nil {
 			return nil, err
 		}
@@ -20,8 +20,8 @@ func convertNamedValues(args []driver.NamedValue) ([]*rdsdataservice.SqlParamete
 	return params, nil
 }
 
-// convertNamedValue from a NamedValue to an SqlParameter
-func convertNamedValue(arg driver.NamedValue) (value *rdsdataservice.SqlParameter, err error) {
+// ConvertNamedValue from a NamedValue to an SqlParameter
+func ConvertNamedValue(arg driver.NamedValue) (value *rdsdataservice.SqlParameter, err error) {
 	name := arg.Name
 	if name == "" {
 		err = ErrNoPositional
@@ -58,13 +58,13 @@ func convertNamedValue(arg driver.NamedValue) (value *rdsdataservice.SqlParamete
 	return
 }
 
-var supportedIsolationLevels = map[driver.IsolationLevel]bool{}
+var SupportedIsolationLevels = map[driver.IsolationLevel]bool{}
 
 func init() {
 	// List of supported isolation levels for both Postgres and mysql
-	supportedIsolationLevels[driver.IsolationLevel(sql.LevelDefault)] = true
-	supportedIsolationLevels[driver.IsolationLevel(sql.LevelRepeatableRead)] = true
-	supportedIsolationLevels[driver.IsolationLevel(sql.LevelReadCommitted)] = true
-	supportedIsolationLevels[driver.IsolationLevel(sql.LevelReadUncommitted)] = true
-	supportedIsolationLevels[driver.IsolationLevel(sql.LevelSerializable)] = true
+	SupportedIsolationLevels[driver.IsolationLevel(sql.LevelDefault)] = true
+	SupportedIsolationLevels[driver.IsolationLevel(sql.LevelRepeatableRead)] = true
+	SupportedIsolationLevels[driver.IsolationLevel(sql.LevelReadCommitted)] = true
+	SupportedIsolationLevels[driver.IsolationLevel(sql.LevelReadUncommitted)] = true
+	SupportedIsolationLevels[driver.IsolationLevel(sql.LevelSerializable)] = true
 }
