@@ -13,7 +13,7 @@ import (
 const DRIVERNAME = "rds"
 
 // NewDriver creates a new driver instance for RDS
-func NewDriver() driver.Driver {
+func NewDriver() *Driver {
 	return &Driver{}
 }
 

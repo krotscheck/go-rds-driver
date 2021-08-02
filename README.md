@@ -62,7 +62,6 @@ make clean checks
 This implementation heavily inspired by [what came before](https://github.com/graveyard/rds/tree/birthday).
 
 ## TODO List
-* Build a proper test harness.
 * Implement strategy for Aurora's Communication Link Failure errors.
 * Build tests for all the transaction management edge cases.
 * Increase test coverage.
