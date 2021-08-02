@@ -1,4 +1,5 @@
 *_mocks_test.go
+env.sh
 
 # Created by https://www.toptal.com/developers/gitignore/api/intellij,go,osx,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=intellij,go,osx,windows

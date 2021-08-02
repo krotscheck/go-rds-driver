@@ -43,6 +43,28 @@ conf := postgres.Config{
 dialector := postgres.New(conf)
 ```
 
+## Running the tests
+You will need to provide your own RDS cluster to run tests for this package.
+Once provisioned, set the following environment parameters:
+```
+export RDS_TEST_RESOURCE_ARN=""
+export RDS_TEST_SECRET_ARN=""
+export RDS_TEST_DATABASE=""
+export AWS_REGION=""
+```
+
+Executing tests and generating reports can be done via the provided makefile.
+```shell
+make clean checks
+```
+
 ## Acknowledgments
 This implementation heavily inspired by [what came before](https://github.com/graveyard/rds/tree/birthday).
+
+## TODO List
+* Build a proper test harness.
+* Implement strategy for Aurora's Communication Link Failure errors.
+* Build tests for all the transaction management edge cases.
+* Increase test coverage.
+* Figure out CI/CD, if necessary.
 
