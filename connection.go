@@ -110,7 +110,7 @@ func (r *Connection) BeginTx(ctx context.Context, opts driver.TxOptions) (driver
 		{Name: "isolation", Value: sql.IsolationLevel(opts.Isolation).String()},
 		{Name: "readonly", Value: rw},
 	}
-	if _, err := r.ExecContext(ctx, "SET TRANSACTION ISOLATION LEVEL @isolation, @readonly", args); err != nil {
+	if _, err := r.ExecContext(ctx, "SET TRANSACTION ISOLATION LEVEL :isolation, :readonly", args); err != nil {
 		defer func() {
 			_ = r.tx.Rollback()
 		}()

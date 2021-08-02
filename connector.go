@@ -31,9 +31,7 @@ func (r *Connector) Connect(ctx context.Context) (*Connection, error) {
 	return NewConnection(ctx, r.api, r.resourceARN, r.secretARN, r.database), nil
 }
 
-// Driver returns the underlying Driver of the Connector,
-// mainly to maintain compatibility with the Driver method
-// on sql.DB.
+// Driver returns the underlying Driver of the Connector, mainly to maintain compatibility with the Driver method on sql.DB.
 func (r *Connector) Driver() driver.Driver {
 	return r.driver
 }

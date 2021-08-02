@@ -61,6 +61,7 @@ func convertNamedValue(arg driver.NamedValue) (value *rdsdataservice.SqlParamete
 var supportedIsolationLevels = map[driver.IsolationLevel]bool{}
 
 func init() {
+	// List of supported isolation levels for both Postgres and mysql
 	supportedIsolationLevels[driver.IsolationLevel(sql.LevelDefault)] = true
 	supportedIsolationLevels[driver.IsolationLevel(sql.LevelRepeatableRead)] = true
 	supportedIsolationLevels[driver.IsolationLevel(sql.LevelReadCommitted)] = true
