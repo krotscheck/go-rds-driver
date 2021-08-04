@@ -1,7 +1,9 @@
 # go-rds-driver
 A golang sql Driver for the Amazon Aurora Serverless data api.
 
-> **Note:** The serverless data api only supports _named_ query parameters, not ordinal ones. Please write your queries accordingly.
+> **Note:** The serverless data api only supports _named_ query parameters, not ordinal ones. We
+> perform a simple ordinal variable replacement in the driver, however we strongly recommend
+> you used named parameters as a general rule.
 
 ## Getting Started
 
@@ -62,6 +64,4 @@ make clean checks
 This implementation heavily inspired by [what came before](https://github.com/graveyard/rds/tree/birthday).
 
 ## TODO List
-* Increase test coverage.
 * Figure out CI/CD, if necessary.
-* Detect database engine underlying it all.

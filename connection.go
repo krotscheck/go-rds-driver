@@ -54,7 +54,7 @@ func (r *Connection) Prepare(query string) (driver.Stmt, error) {
 }
 
 // PrepareContext returns a prepared statement, bound to this connection.
-func (r *Connection) PrepareContext(ctx context.Context, query string) (driver.Stmt, error) {
+func (r *Connection) PrepareContext(ctx context.Context, query string) (*Statement, error) {
 	return NewStatement(ctx, r, query), nil
 }
 
@@ -154,43 +154,18 @@ func (r *Connection) IsValid() bool {
 
 // QueryContext executes a statement that would return some kind of result.
 func (r *Connection) QueryContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Rows, error) {
-	output, err := r.executeStatement(ctx, query, args)
+	stmt, err := r.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-
-	return NewRows(output), nil
+	return stmt.QueryContext(ctx, args)
 }
 
 // ExecContext executes a query that would normally not return a result.
 func (r *Connection) ExecContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Result, error) {
-	output, err := r.executeStatement(ctx, query, args)
+	stmt, err := r.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-
-	return NewResult(output), nil
-}
-
-func (r *Connection) executeStatement(ctx context.Context, query string, args []driver.NamedValue) (*rdsdataservice.ExecuteStatementOutput, error) {
-	var txID *string
-	if r.tx != nil {
-		txID = r.tx.TransactionID
-	}
-	params, err := ConvertNamedValues(args)
-	if err != nil {
-		return nil, err
-	}
-
-	req := &rdsdataservice.ExecuteStatementInput{
-		Database:              aws.String(r.database),
-		ResourceArn:           aws.String(r.resourceARN),
-		SecretArn:             aws.String(r.secretARN),
-		TransactionId:         txID,
-		IncludeResultMetadata: aws.Bool(true),
-		Parameters:            params,
-		Sql:                   aws.String(query),
-	}
-
-	return r.rds.ExecuteStatementWithContext(ctx, req)
+	return stmt.ExecContext(ctx, args)
 }
