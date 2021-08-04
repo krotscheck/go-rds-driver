@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+type Dialect string
+
+const (
+	DialectMySQL    Dialect = "mysql"
+	DialectPostgres Dialect = "postgres"
+)
+
 // NewConnector from the provided configuration fields
 func NewConnector(d driver.Driver, api rdsdataserviceiface.RDSDataServiceAPI, resourceARN string, secretARN string, database string) *Connector {
 	return &Connector{
@@ -26,19 +33,21 @@ type Connector struct {
 	secretARN            string
 	database             string
 	lastSuccessfulWakeup time.Time
+	dialect              Dialect
 }
 
 // Connect returns a connection to the database.
 func (r *Connector) Connect(ctx context.Context) (*Connection, error) {
 	if r.lastSuccessfulWakeup.Add(time.Minute * 5).Before(time.Now()) {
-		err := Wakeup(r.rds, r.resourceARN, r.secretARN, r.database)
+		dialect, err := Wakeup(r.rds, r.resourceARN, r.secretARN, r.database)
 		if err != nil {
 			return nil, err
 		}
+		r.dialect = dialect
 		r.lastSuccessfulWakeup = time.Now()
 	}
 
-	return NewConnection(ctx, r.rds, r.resourceARN, r.secretARN, r.database), nil
+	return NewConnection(ctx, r.rds, r.resourceARN, r.secretARN, r.database, r.dialect), nil
 }
 
 // Driver returns the underlying Driver of the Connector, mainly to maintain compatibility with the Driver method on sql.DB.

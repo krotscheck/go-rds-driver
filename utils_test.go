@@ -47,7 +47,7 @@ func init() {
 	rdsAPI := rdsdataservice.New(awsSession)
 
 	// Wakeup the cluster
-	err = rds.Wakeup(rdsAPI, resourceARN, secretARN, database)
+	_, err = rds.Wakeup(rdsAPI, resourceARN, secretARN, database)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,7 +64,18 @@ func init() {
 
 // ExpectWakeup can be used whenever we're mocking out a new connection
 func ExpectWakeup(mockRDS *MockRDSDataServiceAPI, conf *rds.Config) {
-	mockRDS.EXPECT().ExecuteStatement(ExpectedStatement(conf, "/* wakeup */ SELECT 1", nil)).AnyTimes().Return(nil, nil)
+	mockRDS.EXPECT().
+		ExecuteStatement(ExpectedStatement(conf, "/* wakeup */ SELECT VERSION()", nil)).
+		AnyTimes().
+		Return(&rdsdataservice.ExecuteStatementOutput{
+			Records: [][]*rdsdataservice.Field{
+				{
+					&rdsdataservice.Field{
+						StringValue: aws.String("5.7.0"),
+					},
+				},
+			},
+		}, nil)
 }
 
 // ExpectTransaction to be started

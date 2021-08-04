@@ -12,7 +12,7 @@ import (
 )
 
 // NewConnection that can make transaction and statement requests against RDS
-func NewConnection(ctx context.Context, rds rdsdataserviceiface.RDSDataServiceAPI, resourceARN string, secretARN string, database string) *Connection {
+func NewConnection(ctx context.Context, rds rdsdataserviceiface.RDSDataServiceAPI, resourceARN string, secretARN string, database string, dialect Dialect) *Connection {
 	return &Connection{
 		ctx:         ctx,
 		rds:         rds,
@@ -20,6 +20,7 @@ func NewConnection(ctx context.Context, rds rdsdataserviceiface.RDSDataServiceAP
 		secretARN:   secretARN,
 		database:    database,
 		closed:      false,
+		dialect:     dialect,
 	}
 }
 
@@ -32,6 +33,7 @@ type Connection struct {
 	database    string
 	tx          *Tx // The current transaction, if set
 	closed      bool
+	dialect     Dialect
 }
 
 // Ping the database

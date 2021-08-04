@@ -7,6 +7,9 @@ import (
 
 // NewStatement for the provided connection
 func NewStatement(_ context.Context, connection *Connection, sql string) driver.Stmt {
+	// TODO: Determine if this is an ordinal or named query.
+	// TODO: Convert an ordinal query into a named query
+	// TODO: Implement the ordinal methods below into name conversion queries.
 	return &Statement{
 		conn:  connection,
 		query: sql,

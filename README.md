@@ -64,4 +64,4 @@ This implementation heavily inspired by [what came before](https://github.com/gr
 ## TODO List
 * Increase test coverage.
 * Figure out CI/CD, if necessary.
-
+* Detect database engine underlying it all.
