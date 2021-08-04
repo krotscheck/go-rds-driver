@@ -10,29 +10,29 @@ import (
 // NewTx creates a new transaction
 func NewTx(transactionID *string, conn *Connection) driver.Tx {
 	return &Tx{
-		done:          false,
-		transactionID: transactionID,
+		Done:          false,
+		TransactionID: transactionID,
 		conn:          conn,
 	}
 }
 
 // Tx is a transaction
 type Tx struct {
-	done          bool
-	transactionID *string
+	Done          bool
+	TransactionID *string
 	conn          *Connection
 }
 
 // Commit the transaction
 func (r *Tx) Commit() error {
-	if r.done {
+	if r.Done {
 		return sql.ErrTxDone
 	}
 
 	_, err := r.conn.rds.CommitTransaction(&rdsdataservice.CommitTransactionInput{
 		ResourceArn:   aws.String(r.conn.resourceARN),
 		SecretArn:     aws.String(r.conn.secretARN),
-		TransactionId: r.transactionID,
+		TransactionId: r.TransactionID,
 	})
 	if err != nil {
 		return err
@@ -40,19 +40,19 @@ func (r *Tx) Commit() error {
 	if r.conn.tx == r {
 		r.conn.tx = nil
 	}
-	r.done = true
+	r.Done = true
 	return nil
 }
 
 // Rollback the transaction
 func (r *Tx) Rollback() error {
-	if r.done {
+	if r.Done {
 		return sql.ErrTxDone
 	}
 	_, err := r.conn.rds.RollbackTransaction(&rdsdataservice.RollbackTransactionInput{
 		ResourceArn:   aws.String(r.conn.resourceARN),
 		SecretArn:     aws.String(r.conn.secretARN),
-		TransactionId: r.transactionID,
+		TransactionId: r.TransactionID,
 	})
 	if err != nil {
 		return err
@@ -60,6 +60,6 @@ func (r *Tx) Rollback() error {
 	if r.conn.tx == r {
 		r.conn.tx = nil
 	}
-	r.done = true
+	r.Done = true
 	return nil
 }

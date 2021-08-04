@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
+	"github.com/aws/aws-sdk-go/service/rdsdataservice/rdsdataserviceiface"
+	"log"
+	"time"
 )
 
 func ConvertNamedValues(args []driver.NamedValue) ([]*rdsdataservice.SqlParameter, error) {
@@ -59,6 +62,39 @@ func ConvertNamedValue(arg driver.NamedValue) (value *rdsdataservice.SqlParamete
 }
 
 var SupportedIsolationLevels = map[driver.IsolationLevel]bool{}
+
+// Wakeup the cluster if it's dormant
+func Wakeup(r rdsdataserviceiface.RDSDataServiceAPI, resourceARN string, secretARN string, database string) error {
+	request := &rdsdataservice.ExecuteStatementInput{
+		ResourceArn: aws.String(resourceARN),
+		Database:    aws.String(database),
+		SecretArn:   aws.String(secretARN),
+		Sql:         aws.String("/* wakeup */ SELECT 1"), // This works for all databases, I think.
+		Parameters:  []*rdsdataservice.SqlParameter{},
+	}
+
+	return retry(10, time.Second, func() (err error) {
+		_, err = r.ExecuteStatement(request)
+		return
+	})
+}
+
+func retry(attempts int, sleep time.Duration, callback func() error) (err error) {
+	for i := 0; ; i++ {
+		err = callback()
+		if err == nil {
+			return
+		}
+
+		if i >= (attempts - 1) {
+			break
+		}
+
+		time.Sleep(sleep)
+		log.Println("retrying after error:", err)
+	}
+	return fmt.Errorf("after %d attempts, last error: %s", attempts, err)
+}
 
 func init() {
 	// List of supported isolation levels for both Postgres and mysql

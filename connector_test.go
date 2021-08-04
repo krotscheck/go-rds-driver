@@ -19,6 +19,8 @@ func Test_Connector(t *testing.T) {
 		ctx := context.Background()
 
 		Convey("Connect", func() {
+			ExpectWakeup(mockRDS, conf)
+
 			connection, err := connector.Connect(ctx)
 			So(err, ShouldBeNil)
 			So(connection, ShouldNotBeNil)
