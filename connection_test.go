@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"github.com/golang/mock/gomock"
-	"github.com/krotscheck/rds"
+	"github.com/krotscheck/go-rds-driver"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )

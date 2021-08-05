@@ -1,4 +1,4 @@
-module github.com/krotscheck/rds
+module github.com/krotscheck/go-rds-driver
 
 go 1.16
 

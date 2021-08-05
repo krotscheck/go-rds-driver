@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
-	"github.com/krotscheck/rds"
+	"github.com/krotscheck/go-rds-driver"
 	. "github.com/smartystreets/goconvey/convey"
 	"log"
 	"os"
