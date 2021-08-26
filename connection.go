@@ -12,7 +12,7 @@ import (
 )
 
 // NewConnection that can make transaction and statement requests against RDS
-func NewConnection(ctx context.Context, rds rdsdataserviceiface.RDSDataServiceAPI, resourceARN string, secretARN string, database string, dialect Dialect) *Connection {
+func NewConnection(ctx context.Context, rds rdsdataserviceiface.RDSDataServiceAPI, resourceARN string, secretARN string, database string, dialect Dialect) driver.Conn {
 	return &Connection{
 		ctx:         ctx,
 		rds:         rds,
@@ -54,7 +54,7 @@ func (r *Connection) Prepare(query string) (driver.Stmt, error) {
 }
 
 // PrepareContext returns a prepared statement, bound to this connection.
-func (r *Connection) PrepareContext(ctx context.Context, query string) (*Statement, error) {
+func (r *Connection) PrepareContext(ctx context.Context, query string) (driver.Stmt, error) {
 	return NewStatement(ctx, r, query), nil
 }
 
@@ -158,7 +158,10 @@ func (r *Connection) QueryContext(ctx context.Context, query string, args []driv
 	if err != nil {
 		return nil, err
 	}
-	return stmt.QueryContext(ctx, args)
+	if st, ok := stmt.(driver.StmtQueryContext); ok {
+		return st.QueryContext(ctx, args)
+	}
+	return nil, fmt.Errorf("invalid statement")
 }
 
 // ExecContext executes a query that would normally not return a result.
@@ -167,5 +170,8 @@ func (r *Connection) ExecContext(ctx context.Context, query string, args []drive
 	if err != nil {
 		return nil, err
 	}
-	return stmt.ExecContext(ctx, args)
+	if st, ok := stmt.(driver.StmtExecContext); ok {
+		return st.ExecContext(ctx, args)
+	}
+	return nil, fmt.Errorf("invalid statement")
 }

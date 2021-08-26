@@ -24,6 +24,7 @@ type Rows struct {
 
 // Columns returns the column names in order
 func (r *Rows) Columns() []string {
+	// First see if there's column metadata that we can check for.
 	cols := make([]string, len(r.out.ColumnMetadata))
 	for i, c := range r.out.ColumnMetadata {
 		cols[i] = aws.StringValue(c.Name)

@@ -12,6 +12,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"log"
 	"os"
+	"testing"
 )
 
 // TestConfig to use when making integration test calls
@@ -121,4 +122,91 @@ func ExpectedStatement(conf *rds.Config, query string, args []driver.NamedValue)
 		Sql:         aws.String(query),
 		Parameters:  params,
 	}
+}
+
+func Test_ConvertQuery(t *testing.T) {
+
+	Convey("ConvertQuery", t, func() {
+		Convey("All Ordinal", func() {
+			inputQuery := "SELECT ? FROM ? WHERE id = ?"
+			inputArgs := []driver.NamedValue{
+				{Name: "", Ordinal: 1, Value: "name"},
+				{Name: "", Ordinal: 2, Value: "my_table"},
+				{Name: "", Ordinal: 3, Value: "unique_id"},
+			}
+			expected := &rdsdataservice.ExecuteStatementInput{
+				Parameters: []*rdsdataservice.SqlParameter{
+					{
+						Name: aws.String("1"),
+						Value: &rdsdataservice.Field{
+							StringValue: aws.String("name"),
+						},
+					},
+					{
+						Name: aws.String("2"),
+						Value: &rdsdataservice.Field{
+							StringValue: aws.String("my_table"),
+						},
+					},
+					{
+						Name: aws.String("3"),
+						Value: &rdsdataservice.Field{
+							StringValue: aws.String("unique_id"),
+						},
+					},
+				},
+				Sql: aws.String("SELECT :1 FROM :2 WHERE id = :3"),
+			}
+
+			output, err := rds.MigrateQuery(inputQuery, inputArgs)
+			So(err, ShouldBeNil)
+			So(output, ShouldResemble, expected)
+		})
+		Convey("All Named", func() {
+			inputQuery := "SELECT :field FROM :table WHERE id = :id"
+			inputArgs := []driver.NamedValue{
+				{Name: "field", Value: "name"},
+				{Name: "table", Value: "my_table"},
+				{Name: "id", Value: "unique_id"},
+			}
+			expected := &rdsdataservice.ExecuteStatementInput{
+				Parameters: []*rdsdataservice.SqlParameter{
+					{
+						Name: aws.String("field"),
+						Value: &rdsdataservice.Field{
+							StringValue: aws.String("name"),
+						},
+					},
+					{
+						Name: aws.String("table"),
+						Value: &rdsdataservice.Field{
+							StringValue: aws.String("my_table"),
+						},
+					},
+					{
+						Name: aws.String("id"),
+						Value: &rdsdataservice.Field{
+							StringValue: aws.String("unique_id"),
+						},
+					},
+				},
+				Sql: aws.String("SELECT :field FROM :table WHERE id = :id"),
+			}
+
+			output, err := rds.MigrateQuery(inputQuery, inputArgs)
+			So(err, ShouldBeNil)
+			So(output, ShouldResemble, expected)
+		})
+		Convey("Mixed", func() {
+			inputQuery := "SELECT ? FROM :table WHERE id = :id"
+			inputArgs := []driver.NamedValue{
+				{Ordinal: 1, Value: "name"},
+				{Name: "table", Value: "my_table"},
+				{Name: "id", Value: "unique_id"},
+			}
+
+			_, err := rds.MigrateQuery(inputQuery, inputArgs)
+			So(err, ShouldNotBeNil)
+		})
+	})
 }

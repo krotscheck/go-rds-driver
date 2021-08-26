@@ -8,9 +8,60 @@ import (
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
 	"github.com/aws/aws-sdk-go/service/rdsdataservice/rdsdataserviceiface"
 	"log"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
+
+var ordinalRegex = regexp.MustCompile("\\?{1}")
+
+func MigrateQuery(query string, args []driver.NamedValue) (*rdsdataservice.ExecuteStatementInput, error) {
+	// Make sure we're not mixing and matching.
+	ordinal := false
+	named := false
+	for _, arg := range args {
+		if arg.Name != "" {
+			named = true
+		}
+		if arg.Ordinal > 0 {
+			ordinal = true
+		}
+		if named && ordinal {
+			return nil, ErrNoMixedParams
+		}
+	}
+
+	// If we're ordinal, convert to named
+	if ordinal {
+		namedArgs := make([]driver.NamedValue, len(args))
+		for i, v := range args {
+			namedArgs[i] = driver.NamedValue{
+				Name:  strconv.Itoa(v.Ordinal),
+				Value: v.Value,
+			}
+		}
+		args = namedArgs
+
+		idx := 0
+		query = ordinalRegex.ReplaceAllStringFunc(query, func(s string) string {
+			idx = idx + 1 // ordinal regex are one-indexed
+			return fmt.Sprintf(":%d", idx)
+		})
+
+		params, err := ConvertNamedValues(namedArgs)
+		return &rdsdataservice.ExecuteStatementInput{
+			Parameters: params,
+			Sql:        aws.String(query),
+		}, err
+	} else {
+		params, err := ConvertNamedValues(args)
+		return &rdsdataservice.ExecuteStatementInput{
+			Parameters: params,
+			Sql:        aws.String(query),
+		}, err
+	}
+}
 
 func ConvertNamedValues(args []driver.NamedValue) ([]*rdsdataservice.SqlParameter, error) {
 	var params = make([]*rdsdataservice.SqlParameter, len(args))
@@ -27,11 +78,6 @@ func ConvertNamedValues(args []driver.NamedValue) ([]*rdsdataservice.SqlParamete
 // ConvertNamedValue from a NamedValue to an SqlParameter
 func ConvertNamedValue(arg driver.NamedValue) (value *rdsdataservice.SqlParameter, err error) {
 	name := arg.Name
-	if name == "" {
-		err = ErrNoPositional
-		return
-	}
-
 	if arg.Value == nil {
 		value = &rdsdataservice.SqlParameter{
 			Name:  &name,
@@ -39,25 +85,63 @@ func ConvertNamedValue(arg driver.NamedValue) (value *rdsdataservice.SqlParamete
 		}
 		return
 	}
-	var f *rdsdataservice.Field
 	switch t := arg.Value.(type) {
 	case string:
-		f = &rdsdataservice.Field{StringValue: aws.String(t)}
+		value = &rdsdataservice.SqlParameter{
+			Name:  &name,
+			Value: &rdsdataservice.Field{StringValue: aws.String(t)},
+		}
 	case []byte:
-		f = &rdsdataservice.Field{BlobValue: t}
+		value = &rdsdataservice.SqlParameter{
+			Name:  &name,
+			Value: &rdsdataservice.Field{BlobValue: t},
+		}
 	case bool:
-		f = &rdsdataservice.Field{BooleanValue: &t}
+		value = &rdsdataservice.SqlParameter{
+			Name:  &name,
+			Value: &rdsdataservice.Field{BooleanValue: &t},
+		}
+	case float32:
+		value = &rdsdataservice.SqlParameter{
+			Name:  &name,
+			Value: &rdsdataservice.Field{DoubleValue: aws.Float64(float64(t))},
+		}
 	case float64:
-		f = &rdsdataservice.Field{DoubleValue: &t}
+		value = &rdsdataservice.SqlParameter{
+			Name:  &name,
+			Value: &rdsdataservice.Field{DoubleValue: &t},
+		}
+	case int:
+		value = &rdsdataservice.SqlParameter{
+			Name:  &name,
+			Value: &rdsdataservice.Field{LongValue: aws.Int64(int64(t))},
+		}
+	case int16:
+		value = &rdsdataservice.SqlParameter{
+			Name:  &name,
+			Value: &rdsdataservice.Field{LongValue: aws.Int64(int64(t))},
+		}
 	case int64:
-		f = &rdsdataservice.Field{LongValue: &t}
+		value = &rdsdataservice.SqlParameter{
+			Name:  &name,
+			Value: &rdsdataservice.Field{LongValue: aws.Int64(t)},
+		}
+	case nil:
+		value = &rdsdataservice.SqlParameter{
+			Name:  &name,
+			Value: &rdsdataservice.Field{IsNull: aws.Bool(true)},
+		}
+	case time.Time:
+		value = &rdsdataservice.SqlParameter{
+			Name:     &name,
+			TypeHint: aws.String("TIMESTAMP"),
+			Value: &rdsdataservice.Field{
+				StringValue: aws.String(t.In(time.UTC).Format("2006-01-02 15:04:05.999")),
+			},
+		}
 	default:
-		err = fmt.Errorf("%s is unsupported type: %#v", name, value)
+		err = fmt.Errorf("%s is unsupported type: %#v", name, arg.Value)
 		return
-	}
-	value = &rdsdataservice.SqlParameter{
-		Name:  &name,
-		Value: f,
 	}
 	return
 }

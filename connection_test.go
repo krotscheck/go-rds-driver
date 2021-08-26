@@ -23,8 +23,10 @@ func Test_Connection(t *testing.T) {
 	}
 
 	Convey("Connection", t, func() {
-		connection, err := connector.Connect(ctx)
+		c, err := connector.Connect(ctx)
 		So(err, ShouldBeNil)
+		connection, ok := c.(*rds.Connection)
+		So(ok, ShouldBeTrue)
 
 		Convey("Ping", func() {
 			err := connection.Ping(ctx)
@@ -188,23 +190,33 @@ func Test_Connection(t *testing.T) {
 			mockRDS := NewMockRDSDataServiceAPI(ctrl)
 
 			Convey("Closed", func() {
-				conn := rds.NewConnection(ctx, mockRDS, "resourceARN", "secretARN", "database", rds.DialectMySQL)
+				c := rds.NewConnection(ctx, mockRDS, "resourceARN", "secretARN", "database", rds.DialectMySQL)
+				conn, ok := c.(*rds.Connection)
+				So(ok, ShouldBeTrue)
 				err := conn.Close()
 				So(err, ShouldBeNil)
 				So(conn.IsValid(), ShouldBeFalse)
 			})
 
 			Convey("Misconfigured", func() {
-				conn := rds.NewConnection(ctx, mockRDS, "", "secretARN", "database", rds.DialectMySQL)
+				c := rds.NewConnection(ctx, mockRDS, "", "secretARN", "database", rds.DialectMySQL)
+				conn, ok := c.(*rds.Connection)
+				So(ok, ShouldBeTrue)
 				So(conn.IsValid(), ShouldBeFalse)
 
-				conn = rds.NewConnection(ctx, mockRDS, "resourceARN", "", "database", rds.DialectMySQL)
+				c = rds.NewConnection(ctx, mockRDS, "resourceARN", "", "database", rds.DialectMySQL)
+				conn, ok = c.(*rds.Connection)
+				So(ok, ShouldBeTrue)
 				So(conn.IsValid(), ShouldBeFalse)
 
-				conn = rds.NewConnection(ctx, mockRDS, "resourceARN", "secretARN", "", rds.DialectMySQL)
+				c = rds.NewConnection(ctx, mockRDS, "resourceARN", "secretARN", "", rds.DialectMySQL)
+				conn, ok = c.(*rds.Connection)
+				So(ok, ShouldBeTrue)
 				So(conn.IsValid(), ShouldBeFalse)
 
-				conn = rds.NewConnection(ctx, mockRDS, "resourceARN", "secretARN", "database", rds.DialectMySQL)
+				c = rds.NewConnection(ctx, mockRDS, "resourceARN", "secretARN", "database", rds.DialectMySQL)
+				conn, ok = c.(*rds.Connection)
+				So(ok, ShouldBeTrue)
 				So(conn.IsValid(), ShouldBeTrue)
 			})
 		})
