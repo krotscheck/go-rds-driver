@@ -23,7 +23,10 @@ type Statement struct {
 
 // Close closes the statement.
 func (s *Statement) Close() error {
-	// The HTTP protocol is stateless, so nothing to do here.
+	if s.conn == nil {
+		return ErrClosed
+	}
+	s.conn = nil
 	return nil
 }
 
@@ -33,13 +36,18 @@ func (s *Statement) NumInput() int {
 }
 
 // Exec executes a query that doesn't return rows, such as an INSERT or UPDATE.
-func (s *Statement) Exec(_ []driver.Value) (driver.Result, error) {
-	return nil, ErrNoPositional
+func (s *Statement) Exec(values []driver.Value) (driver.Result, error) {
+	args := s.ConvertOrdinal(values)
+	out, err := s.executeStatement(context.Background(), s.query, args)
+	if err != nil {
+		return nil, err
+	}
+	return NewResult(out), nil
 }
 
 // ExecContext executes a query that doesn't return rows, such as an INSERT or UPDATE.
 func (s *Statement) ExecContext(ctx context.Context, args []driver.NamedValue) (driver.Result, error) {
-	out, err := s.executeStatement(ctx, args)
+	out, err := s.executeStatement(ctx, s.query, args)
 	if err != nil {
 		return nil, err
 	}
@@ -47,38 +55,53 @@ func (s *Statement) ExecContext(ctx context.Context, args []driver.NamedValue) (
 }
 
 // Query executes a query that may return rows, such as a SELECT.
-func (s *Statement) Query(args []driver.Value) (driver.Rows, error) {
-	return nil, ErrNoPositional
+func (s *Statement) Query(values []driver.Value) (driver.Rows, error) {
+	// We're trying to execute this as an ordinal query, so convert it.
+	args := s.ConvertOrdinal(values)
+
+	out, err := s.executeStatement(context.Background(), s.query, args)
+	if err != nil {
+		return nil, err
+	}
+	return NewRows(s.conn.dialect, out), nil
 }
 
 // QueryContext executes a query that may return rows, such as a SELECT.
 func (s *Statement) QueryContext(ctx context.Context, args []driver.NamedValue) (driver.Rows, error) {
-	out, err := s.executeStatement(ctx, args)
+	out, err := s.executeStatement(ctx, s.query, args)
 	if err != nil {
 		return nil, err
 	}
-	return NewRows(out), nil
+	return NewRows(s.conn.dialect, out), nil
 }
 
-func (s *Statement) executeStatement(ctx context.Context, args []driver.NamedValue) (*rdsdataservice.ExecuteStatementOutput, error) {
-	var txID *string
-	if s.conn.tx != nil {
-		txID = s.conn.tx.TransactionID
+// ConvertOrdinal converts a list of Values to Ordinal NamedValues
+func (s *Statement) ConvertOrdinal(values []driver.Value) []driver.NamedValue {
+	// Start with the MySQL separator as a default
+	namedValues := make([]driver.NamedValue, len(values))
+	for i, v := range values {
+		namedValues[i] = driver.NamedValue{
+			Name:    "",
+			Ordinal: i + 1,
+			Value:   v,
+		}
 	}
-	params, err := ConvertNamedValues(args)
+	return namedValues
+}
+
+func (s *Statement) executeStatement(ctx context.Context, query string, values []driver.NamedValue) (*rdsdataservice.ExecuteStatementOutput, error) {
+	input, err := s.conn.dialect.MigrateQuery(query, values)
 	if err != nil {
 		return nil, err
 	}
 
-	req := &rdsdataservice.ExecuteStatementInput{
-		Database:              aws.String(s.conn.database),
-		ResourceArn:           aws.String(s.conn.resourceARN),
-		SecretArn:             aws.String(s.conn.secretARN),
-		TransactionId:         txID,
-		IncludeResultMetadata: aws.Bool(true),
-		Parameters:            params,
-		Sql:                   aws.String(s.query),
+	if s.conn.tx != nil {
+		input.TransactionId = s.conn.tx.TransactionID
 	}
 
-	return s.conn.rds.ExecuteStatementWithContext(ctx, req)
+	input.IncludeResultMetadata = aws.Bool(true)
+	input.ResourceArn = aws.String(s.conn.resourceARN)
+	input.SecretArn = aws.String(s.conn.secretARN)
+	input.Database = aws.String(s.conn.database)
+	return s.conn.rds.ExecuteStatementWithContext(ctx, input)
 }

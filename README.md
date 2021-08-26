@@ -10,6 +10,7 @@ A golang sql Driver for the Amazon Aurora Serverless data api.
 The `dsn` used in this driver is a JSON encoded string
 of the required aws-sdk parameters. The string may be generated
 by using the provided `Config` type and its `ToDSN` method.
+
 ```go
 conf := &rds.Config{
     ResourceArn: "...",
@@ -22,11 +23,41 @@ dsn, err := conf.ToDSN()
 db.ConnPool, err = sql.Open(rds.DRIVERNAME, dsn)
 ```
 
+## Data mappings
+The nature of our data translation - from DB to HTTP to Go - makes converting database
+types somewhat tricky. In most cases, we've done our best to match the behavior of
+a commonly used driver, so swapping from Data API to Driver can be done quickly and easily.
+Even so, there are some unusual behaviors of the RDS Data API that we call out below:
+
+### MySQL
+
+The RDS MySQL version supported is 5.7. Driver parity is tested using `github.com/go-sql-driver/mysql` 
+
+* Unsigned integers are not natively supported by the AWS SDK's Data API, and are
+  all converted to the int64 type. As such large integer values may be lossy.
+* The `BIT(M)` column type is transferred via the HTTP protocol as a boolean, not
+  as a blob. As this is clearly incorrect and unreliable behavior,
+  the RDS driver will return an error when attempting to marshal a value of this type.
+* The `BOOLEAN` type maps to a `BIT(1)` column type, and thus is impacted
+  by the same limitation as the `BIT(M)` type above. As we cannot reliably determine
+  whether a program wants to map to a `bool` or a `[]uint`, attempting to use
+  this type will also throw an error.
+
+### Postgresql
+
+The RDS Postgres version supported is 10.14. Driver parity is tested using `github.com/jackc/pgx/v4` 
+
+* Unsigned integers are not natively supported by the AWS SDK's Data API, and are
+  all converted to the int64 type. As such large integer values may be lossy.
+* Postgres complex types - in short anything in [section 8.8](https://www.postgresql.org/docs/10/datatype.html) and after,
+  is not supported. If you'd like us to support that, pull requests are relatively
+  easy to submit.
+
 ## Usage with Gorm
 
-The above caveat with the Serverless Data API makes usage of gorm tricky. While you can easily restrict yourself
-to only using named parameters in your application code, the current implementation of the Gorm
-Migrators (as of Aug 1, 2021) exclusively uses ordinal parameters. Please be careful when using this driver.
+The above caveat with the Serverless Data API makes usage of gorm tricky. While you can easily use named parameters
+in your own code, the current implementation of the Gorm Migrators (as of Aug 1, 2021) exclusively uses ordinal
+parameters. Please be careful when using this driver.
 
 ```go
 // RDS using the MySQL Dialector
@@ -46,13 +77,43 @@ dialector := postgres.New(conf)
 ```
 
 ## Running the tests
-You will need to provide your own RDS cluster to run tests for this package.
-Once provisioned, set the following environment parameters:
+
+The intent of this driver is to reach type conversion parity with a database instance that's directly available-
+in other words, that the types returned from the respective drivers are identical. For that purpose
+we require that you provision a locally run instance of mysql and postgres, as well as an RDS instance of each.
+The outputs of each are compared during a test run.
+
+### Creating locally run test databases
+Locally run databases can be started using `docker compose up`.
+
+### Creating RDS Test databases
+This project includes a `./terraform/ directory which
+provisions the necessary resources on RDS. To create them:
+
+```shell
+// Choose an AWS profile
+export AWS_PROFILE=your_aws_profile_name
+
+cd ./terraform
+terraform init
+terraform apply
 ```
-export RDS_TEST_RESOURCE_ARN=""
-export RDS_TEST_SECRET_ARN=""
-export RDS_TEST_DATABASE=""
-export AWS_REGION=""
+
+To dispose of these resources once you're done:
+```shell
+cd ./terraform
+terraform destroy
+```
+
+Once created, the output values should be exported as environment variables, as follows:
+
+```shell
+export RDS_MYSQL_DB_NAME = "go_rds_driver_mysql"
+export RDS_MYSQL_ARN = "arn:aws:rds:us-west-2:1234567890:cluster:mysql"
+export RDS_POSTGRES_DB_NAME = "go_rds_driver_postgresql"
+export RDS_POSTGRES_ARN = "arn:aws:rds:us-west-2:1234567890:cluster:postgresql"
+export RDS_SECRET_ARN = "arn:aws:secretsmanager:us-west-2:1234567890:secret:aurora_password"
+export AWS_REGION=us-west-2
 ```
 
 Executing tests and generating reports can be done via the provided makefile.
@@ -60,8 +121,12 @@ Executing tests and generating reports can be done via the provided makefile.
 make clean checks
 ```
 
-## Acknowledgments
-This implementation heavily inspired by [what came before](https://github.com/graveyard/rds/tree/birthday).
+## Why does this even exist?
 
-## TODO List
-* Figure out CI/CD, if necessary.
+Not everyone has the capital to pay for the VPC resources necessary to access Aurora Serverless directly. In the
+author's case, he likes to keep his personal projects as cheap as possible, and paying for all VPC service gateways,
+just so he can access an RDBMS, crossed the threshold of affordability. If you're looking to run a personal project
+and don't want to break the bank with "overhead" expenses, this driver's the way to go.
+
+## Acknowledgments
+This implementation inspired by [what came before](https://github.com/graveyard/rds/tree/birthday).

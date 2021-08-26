@@ -1,6 +1,10 @@
 *_mocks_test.go
 env.sh
 reports
+terraform/.terraform.lock.hcl
+terraform/.terraform
+terraform/*.tfstate
+terraform/*.tfstate.backup
 
 # Created by https://www.toptal.com/developers/gitignore/api/intellij,go,osx,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=intellij,go,osx,windows

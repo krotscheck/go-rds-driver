@@ -13,7 +13,7 @@ func Test_Driver(t *testing.T) {
 	Convey("Driver", t, func() {
 		So(sql.Drivers(), ShouldContain, rds.DRIVERNAME)
 
-		testDSN, err := TestConfig.ToDSN()
+		testDSN, err := TestMysqlConfig.ToDSN()
 		So(err, ShouldBeNil)
 
 		driver := rds.NewDriver()

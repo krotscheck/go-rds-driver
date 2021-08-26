@@ -7,13 +7,6 @@ import (
 	"time"
 )
 
-type Dialect string
-
-const (
-	DialectMySQL    Dialect = "mysql"
-	DialectPostgres Dialect = "postgres"
-)
-
 // NewConnector from the provided configuration fields
 func NewConnector(d driver.Driver, api rdsdataserviceiface.RDSDataServiceAPI, resourceARN string, secretARN string, database string) *Connector {
 	return &Connector{
@@ -37,7 +30,7 @@ type Connector struct {
 }
 
 // Connect returns a connection to the database.
-func (r *Connector) Connect(ctx context.Context) (*Connection, error) {
+func (r *Connector) Connect(ctx context.Context) (driver.Conn, error) {
 	if r.lastSuccessfulWakeup.Add(time.Minute * 5).Before(time.Now()) {
 		dialect, err := Wakeup(r.rds, r.resourceARN, r.secretARN, r.database)
 		if err != nil {

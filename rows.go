@@ -3,14 +3,22 @@ package rds
 import (
 	"database/sql/driver"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
 	"io"
 )
 
 // NewRows instance for the provided statement output
-func NewRows(out *rdsdataservice.ExecuteStatementOutput) driver.Rows {
+func NewRows(dialect Dialect, out *rdsdataservice.ExecuteStatementOutput) driver.Rows {
+	converters := make([]FieldConverter, len(out.ColumnMetadata))
+	names := make([]string, len(out.ColumnMetadata))
+	for i, col := range out.ColumnMetadata {
+		converters[i] = dialect.GetFieldConverter(*col.TypeName)
+		names[i] = *col.Name
+	}
+
 	return &Rows{
+		columnNames:    names,
+		converters:     converters,
 		out:            out,
 		recordPosition: 0,
 	}
@@ -19,16 +27,14 @@ func NewRows(out *rdsdataservice.ExecuteStatementOutput) driver.Rows {
 // Rows implementation for the RDS Driver
 type Rows struct {
 	out            *rdsdataservice.ExecuteStatementOutput
+	columnNames    []string
+	converters     []FieldConverter
 	recordPosition int
 }
 
 // Columns returns the column names in order
 func (r *Rows) Columns() []string {
-	cols := make([]string, len(r.out.ColumnMetadata))
-	for i, c := range r.out.ColumnMetadata {
-		cols[i] = aws.StringValue(c.Name)
-	}
-	return cols
+	return r.columnNames
 }
 
 // Close the result set
@@ -46,7 +52,8 @@ func (r *Rows) Next(dest []driver.Value) error {
 	r.recordPosition++
 
 	for i, field := range row {
-		coerced, err := r.convertField(field)
+		converter := r.converters[i]
+		coerced, err := converter(field)
 		if err != nil {
 			return fmt.Errorf("convertValue(col=%d): %v", i, err)
 		}
@@ -54,23 +61,4 @@ func (r *Rows) Next(dest []driver.Value) error {
 	}
 
 	return nil
-}
-
-func (r *Rows) convertField(field *rdsdataservice.Field) (interface{}, error) {
-	switch {
-	case field.BlobValue != nil:
-		return field.BlobValue, nil
-	case field.BooleanValue != nil:
-		return *field.BooleanValue, nil
-	case field.DoubleValue != nil:
-		return *field.DoubleValue, nil
-	case field.IsNull != nil:
-		return nil, nil
-	case field.LongValue != nil:
-		return *field.LongValue, nil
-	case field.StringValue != nil:
-		return *field.StringValue, nil
-	default:
-		return nil, fmt.Errorf("no part of Field non-nil")
-	}
 }
