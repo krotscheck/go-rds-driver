@@ -52,6 +52,10 @@ func (r *Rows) Next(dest []driver.Value) error {
 	r.recordPosition++
 
 	for i, field := range row {
+		if *field.IsNull {
+			dest[i] = nil
+			continue
+		}
 		converter := r.converters[i]
 		coerced, err := converter(field)
 		if err != nil {
