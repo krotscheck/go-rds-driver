@@ -3,6 +3,7 @@ package rds
 import (
 	"database/sql/driver"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
 	"io"
 )
@@ -52,7 +53,7 @@ func (r *Rows) Next(dest []driver.Value) error {
 	r.recordPosition++
 
 	for i, field := range row {
-		if *field.IsNull {
+		if aws.BoolValue(field.IsNull) {
 			dest[i] = nil
 			continue
 		}
