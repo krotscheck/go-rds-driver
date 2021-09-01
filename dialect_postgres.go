@@ -68,11 +68,11 @@ func (d *DialectPostgres) GetFieldConverter(columnType string) FieldConverter {
 	switch strings.ToLower(columnType) {
 	case "serial":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return *field.LongValue, nil
+			return aws.Int64Value(field.LongValue), nil
 		}
 	case "bool":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return *field.BooleanValue, nil
+			return aws.BoolValue(field.BooleanValue), nil
 		}
 	case "bpchar":
 		fallthrough
@@ -80,7 +80,7 @@ func (d *DialectPostgres) GetFieldConverter(columnType string) FieldConverter {
 		fallthrough
 	case "text":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return *field.StringValue, nil
+			return aws.StringValue(field.StringValue), nil
 		}
 	case "int2":
 		fallthrough
@@ -88,7 +88,7 @@ func (d *DialectPostgres) GetFieldConverter(columnType string) FieldConverter {
 		fallthrough
 	case "int8":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return *field.LongValue, nil
+			return aws.Int64Value(field.LongValue), nil
 		}
 	case "numeric":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
@@ -96,7 +96,7 @@ func (d *DialectPostgres) GetFieldConverter(columnType string) FieldConverter {
 		}
 	case "float4":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return *field.DoubleValue, nil
+			return aws.Float64Value(field.DoubleValue), nil
 		}
 	case "date":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
@@ -108,7 +108,7 @@ func (d *DialectPostgres) GetFieldConverter(columnType string) FieldConverter {
 		}
 	case "time":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return *field.StringValue, nil
+			return aws.StringValue(field.StringValue), nil
 		}
 	case "timestamp":
 		return func(field *rdsdataservice.Field) (interface{}, error) {

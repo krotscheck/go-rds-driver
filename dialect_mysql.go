@@ -79,7 +79,7 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 		fallthrough
 	case "BIGINT UNSIGNED":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return uint64(*field.LongValue), nil
+			return uint64(aws.Int64Value(field.LongValue)), nil
 		}
 	case "TINYINT":
 		fallthrough
@@ -91,7 +91,7 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 		fallthrough
 	case "BIGINT":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return *field.LongValue, nil
+			return aws.Int64Value(field.LongValue), nil
 		}
 	case "DECIMAL":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
@@ -101,7 +101,7 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 		fallthrough
 	case "DOUBLE":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return *field.DoubleValue, nil
+			return aws.Float64Value(field.DoubleValue), nil
 		}
 	case "BIT":
 		// Bit values appear to be returned as boolean values
@@ -128,7 +128,7 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 		fallthrough
 	case "TIMESTAMP":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return *field.StringValue, nil
+			return aws.StringValue(field.StringValue), nil
 		}
 	case "BINARY":
 		fallthrough
