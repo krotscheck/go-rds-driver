@@ -53,6 +53,13 @@ The RDS Postgres version supported is 10.14. Driver parity is tested using `gith
   is not supported. If you'd like us to support that, pull requests are relatively
   easy to submit.
 
+## Options
+This driver supports a variety of configuration options in the DSN, as follows:
+
+* `ParseTime`: Instead of returning the default `string` value of a date or time type,
+  the driver will convert it into `time.Time`
+
+
 ## Usage with Gorm
 
 The above caveat with the Serverless Data API makes usage of gorm tricky. While you can easily use named parameters

@@ -14,8 +14,14 @@ import (
 
 var ordinalRegex = regexp.MustCompile("\\?{1}")
 
+// NewMySQL dialect from our configuration
+func NewMySQL(config *Config) Dialect {
+	return &DialectMySQL{parseTime: config.ParseTime}
+}
+
 // DialectMySQL for version 5.7
 type DialectMySQL struct {
+	parseTime bool
 }
 
 // MigrateQuery converts a mysql query into an RDS stateement.
@@ -119,16 +125,48 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 	case "CHAR":
 		fallthrough
 	case "VARCHAR":
-		fallthrough
-	case "DATE":
-		fallthrough
-	case "TIME":
-		fallthrough
-	case "DATETIME":
-		fallthrough
-	case "TIMESTAMP":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
 			return aws.StringValue(field.StringValue), nil
+		}
+	case "DATE":
+		return func(field *rdsdataservice.Field) (interface{}, error) {
+			if d.parseTime {
+				return time.Parse("2006-01-02", aws.StringValue(field.StringValue))
+			}
+			return aws.StringValue(field.StringValue), nil
+		}
+	case "TIME":
+		return func(field *rdsdataservice.Field) (interface{}, error) {
+			if d.parseTime {
+				return time.Parse("15:04:05", aws.StringValue(field.StringValue))
+			}
+			return aws.StringValue(field.StringValue), nil
+		}
+	case "DATETIME":
+		return func(field *rdsdataservice.Field) (interface{}, error) {
+			if d.parseTime {
+				return time.Parse("2006-01-02 15:04:05", aws.StringValue(field.StringValue))
+			}
+			return aws.StringValue(field.StringValue), nil
+		}
+	case "TIMESTAMP":
+		return func(field *rdsdataservice.Field) (interface{}, error) {
+			if d.parseTime {
+				return time.Parse("2006-01-02 15:04:05", aws.StringValue(field.StringValue))
+			}
+			return aws.StringValue(field.StringValue), nil
+		}
+	case "YEAR":
+		// RDS sends a full date string. MySQL only returns the year.
+		return func(field *rdsdataservice.Field) (interface{}, error) {
+			t, err := time.Parse("2006-01-02", aws.StringValue(field.StringValue))
+			if err != nil {
+				return nil, err
+			}
+			if d.parseTime {
+				return t, nil
+			}
+			return strconv.Itoa(t.Year()), nil
 		}
 	case "BINARY":
 		fallthrough
@@ -143,15 +181,6 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 	case "LONGBLOB":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
 			return field.BlobValue, nil
-		}
-	case "YEAR":
-		// RDS sends a full date string. MySQL only returns the year.
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			t, err := time.Parse("2006-01-02", aws.StringValue(field.StringValue))
-			if err != nil {
-				return nil, err
-			}
-			return strconv.Itoa(t.Year()), nil
 		}
 	}
 	return func(field *rdsdataservice.Field) (interface{}, error) {

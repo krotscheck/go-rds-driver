@@ -44,7 +44,7 @@ func (r *Driver) OpenConnector(dsn string) (*Connector, error) {
 	}
 	rdsAPI := rdsdataservice.New(awsSession)
 
-	return NewConnector(r, rdsAPI, conf.ResourceArn, conf.SecretArn, conf.Database), nil
+	return NewConnector(r, rdsAPI, conf), nil
 }
 
 func init() {

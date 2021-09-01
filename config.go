@@ -10,6 +10,7 @@ type Config struct {
 	SecretArn   string `json:"secret_arn"`
 	Database    string `json:"database"`
 	AWSRegion   string `json:"aws_region"`
+	ParseTime   bool   `json:"parse_time"`
 }
 
 // ToDSN converts the config to a DSN string

@@ -15,7 +15,7 @@ func Test_Connector(t *testing.T) {
 		contrl := gomock.NewController(t)
 		d := rds.NewDriver()
 		mockRDS := NewMockRDSDataServiceAPI(contrl)
-		connector := rds.NewConnector(d, mockRDS, conf.ResourceArn, conf.SecretArn, conf.Database)
+		connector := rds.NewConnector(d, mockRDS, conf)
 		ctx := context.Background()
 
 		Convey("Connect", func() {

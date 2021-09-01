@@ -19,7 +19,7 @@ func Test_Statement(t *testing.T) {
 		mockRDS := NewMockRDSDataServiceAPI(contrl)
 		ExpectWakeup(mockRDS, conf)
 
-		connector := rds.NewConnector(d, mockRDS, conf.ResourceArn, conf.SecretArn, conf.Database)
+		connector := rds.NewConnector(d, mockRDS, conf)
 		connection, err := connector.Connect(ctx)
 		So(err, ShouldBeNil)
 

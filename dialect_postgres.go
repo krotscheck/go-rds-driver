@@ -14,8 +14,14 @@ import (
 
 var postgresRegex = regexp.MustCompile("\\$([0-9]+)")
 
+// NewPostgres dialect from our configuration
+func NewPostgres(config *Config) Dialect {
+	return &DialectPostgres{parseTime: config.ParseTime}
+}
+
 // DialectPostgres is for postgres 10.14 as supported by aurora serverless
 type DialectPostgres struct {
+	parseTime bool
 }
 
 // MigrateQuery from Postgres to RDS.
@@ -104,10 +110,16 @@ func (d *DialectPostgres) GetFieldConverter(columnType string) FieldConverter {
 			if err != nil {
 				return nil, err
 			}
+			if d.parseTime {
+				return t, nil
+			}
 			return t.Format(time.RFC3339), nil
 		}
 	case "time":
 		return func(field *rdsdataservice.Field) (interface{}, error) {
+			if d.parseTime {
+				return time.Parse("15:04:05", aws.StringValue(field.StringValue))
+			}
 			return aws.StringValue(field.StringValue), nil
 		}
 	case "timestamp":
@@ -115,6 +127,9 @@ func (d *DialectPostgres) GetFieldConverter(columnType string) FieldConverter {
 			t, err := time.Parse("2006-01-02 15:04:05", aws.StringValue(field.StringValue))
 			if err != nil {
 				return nil, err
+			}
+			if d.parseTime {
+				return t, nil
 			}
 			return t.Format(time.RFC3339), nil
 		}
