@@ -35,13 +35,8 @@ The RDS MySQL version supported is 5.7. Driver parity is tested using `github.co
 
 * Unsigned integers are not natively supported by the AWS SDK's Data API, and are
   all converted to the int64 type. As such large integer values may be lossy.
-* The `BIT(M)` column type is transferred via the HTTP protocol as a boolean, not
-  as a blob. As this is clearly incorrect and unreliable behavior,
-  the RDS driver will return an error when attempting to marshal a value of this type.
-* The `BOOLEAN` type maps to a `BIT(1)` column type, and thus is impacted
-  by the same limitation as the `BIT(M)` type above. As we cannot reliably determine
-  whether a program wants to map to a `bool` or a `[]uint`, attempting to use
-  this type will also throw an error.
+* The `BIT` column type is returned from RDS as a Boolean, preventing the full use
+  of `BIT(M)`. Until (if ever) this is fixed, only single bit column values are supported.
 
 ### Postgresql
 

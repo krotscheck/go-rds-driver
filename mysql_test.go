@@ -23,7 +23,7 @@ const MySQLCreateTableQuery = "CREATE TABLE IF NOT EXISTS `all_types` (" +
 	"`sql_decimal` DECIMAL(5,2)," +
 	"`sql_float` double," +
 	"`sql_double` DOUBLE," +
-	//"`sql_bit` BIT(4)," +
+	"`sql_bit` BIT," +
 	"`sql_char` CHAR," +
 	"`sql_varchar` VARCHAR(100)," +
 	"`sql_binary` BINARY," +
@@ -64,16 +64,16 @@ const MySQLDropTableQuery = "DROP TABLE `all_types`;"
 
 // TestMySQLRow of data persisted to mysql
 type TestMySQLRow struct {
-	ID        int32
-	TinyInt   int8
-	SmallInt  int8
-	MediumInt int8
-	Int       int8
-	BigInt    int8
-	Decimal   float64
-	Float     float64
-	Double    float64
-	//Bit        []uint8
+	ID         int32
+	TinyInt    int8
+	SmallInt   int8
+	MediumInt  int8
+	Int        int8
+	BigInt     int8
+	Decimal    float64
+	Float      float64
+	Double     float64
+	Bit        []uint8
 	Char       string
 	Varchar    string
 	Binary     bool
@@ -114,15 +114,15 @@ func NewTestMySQLRow() *TestMySQLRow {
 	_, _ = rand.Read(bytes)
 
 	t := &TestMySQLRow{
-		TinyInt:   1,
-		SmallInt:  2,
-		MediumInt: 3,
-		Int:       4,
-		BigInt:    5,
-		Decimal:   5.11,
-		Float:     5.1111,
-		Double:    1234.5678,
-		//Bit:        []uint8{14},
+		TinyInt:    1,
+		SmallInt:   2,
+		MediumInt:  3,
+		Int:        4,
+		BigInt:     5,
+		Decimal:    5.11,
+		Float:      5.1111,
+		Double:     1234.5678,
+		Bit:        []uint8{1},
 		Char:       "1",
 		Varchar:    "varchar",
 		Binary:     true,
@@ -172,7 +172,7 @@ func (r *TestMySQLRow) Scan(row *sql.Rows) error {
 		&r.Decimal,    //Decimal    float64
 		&r.Float,      //Float      float64
 		&r.Double,     //Double     float64
-		//&r.Bit,        //Bit        bool
+		&r.Bit,        //Bit        bool
 		&r.Char,       //Char       string
 		&r.Varchar,    //Varchar    string
 		&r.Binary,     //Binary     bool
@@ -213,7 +213,7 @@ func (r *TestMySQLRow) Insert(db *sql.DB) (sql.Result, error) {
 	params := []interface{}{
 		r.TinyInt, r.SmallInt, r.MediumInt, r.Int, r.BigInt,
 		r.Decimal, r.Float, r.Double,
-		//r.Bit,
+		r.Bit,
 		r.Char, r.Varchar,
 		r.Binary, r.Varbinary,
 		r.Tinyblob, r.Blob, r.Mediumblob, r.Longblob,
@@ -239,7 +239,7 @@ func (r *TestMySQLRow) Insert(db *sql.DB) (sql.Result, error) {
 	query := "INSERT INTO `all_types` SET" +
 		"`sql_tiny_int` = ?,`sql_small_int` = ?,`sql_medium_int` = ?,`sql_int` = ?,`sql_big_int` = ?," +
 		"`sql_decimal` = ?,`sql_float` = ?,`sql_double` = ?," +
-		//"`sql_bit` = ?," +
+		"`sql_bit` = ?," +
 		"`sql_char` = ?,`sql_varchar` = ?," +
 		"`sql_binary` = ?,`sql_varbinary` = ?," +
 		"`sql_tinyblob` = ?,`sql_blob` = ?,`sql_mediumblob` = ?,`sql_longblob` = ?," +
@@ -367,10 +367,10 @@ func Test_Mysql(t *testing.T) {
 
 					localRows.Next()
 
-					err = localRow.Scan(localRows)
+					err := rdsRow.Scan(rdsRows)
 					So(err, ShouldBeNil)
 
-					err := rdsRow.Scan(rdsRows)
+					err = localRow.Scan(localRows)
 					So(err, ShouldBeNil)
 
 					So(rdsRow, ShouldResemble, localRow)

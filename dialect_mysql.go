@@ -3,7 +3,6 @@ package rds
 import (
 	"database/sql"
 	"database/sql/driver"
-	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
@@ -112,7 +111,10 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 	case "BIT":
 		// Bit values appear to be returned as boolean values
 		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return nil, errors.New("column types BIT(M) and BOOLEAN are not correctly supported by the Data API")
+			if aws.BoolValue(field.BooleanValue) {
+				return []uint8{1}, nil
+			}
+			return []uint8{0}, nil
 		}
 	case "TINYTEXT":
 		fallthrough
