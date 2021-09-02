@@ -36,7 +36,13 @@ The RDS MySQL version supported is 5.7. Driver parity is tested using `github.co
 * Unsigned integers are not natively supported by the AWS SDK's Data API, and are
   all converted to the int64 type. As such large integer values may be lossy.
 * The `BIT` column type is returned from RDS as a Boolean, preventing the full use
-  of `BIT(M)`. Until (if ever) this is fixed, only single bit column values are supported.
+  of `BIT(M)`. Until (if ever) this is fixed, only `BIT(1)` column values are supported.
+* Declaring a `TINYINT(1)` in your table will cause the Data API to return a Boolean
+  instead of an integer. Numeric values are only returned by `TINYINT(2)` or greater.
+* The `BOOLEAN` column type is converted into a `BIT` column by RDS.
+* Boolean marshalling and unmarshalling via `sql.*`, because of the above issues,
+  only works reliably with the `TINYINT(2)` column type. Do not use `BOOLEAN`, `BIT`,
+  or `TINYINT(1)` due to the above behavior.
 
 ### Postgresql
 

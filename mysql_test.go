@@ -23,7 +23,8 @@ const MySQLCreateTableQuery = "CREATE TABLE IF NOT EXISTS `all_types` (" +
 	"`sql_decimal` DECIMAL(5,2)," +
 	"`sql_float` double," +
 	"`sql_double` DOUBLE," +
-	"`sql_bit` BIT," +
+	//"`sql_bit` BIT," +
+	"`sql_boolean` TINYINT(1)," +
 	"`sql_char` CHAR," +
 	"`sql_varchar` VARCHAR(100)," +
 	"`sql_binary` BINARY," +
@@ -60,7 +61,7 @@ const MySQLCreateTableQuery = "CREATE TABLE IF NOT EXISTS `all_types` (" +
 	"`float64` double," +
 	"PRIMARY KEY (`id`))"
 
-const MySQLDropTableQuery = "DROP TABLE `all_types`;"
+const MySQLDropTableQuery = "DROP TABLE IF EXISTS `all_types`;"
 
 // TestMySQLRow of data persisted to mysql
 type TestMySQLRow struct {
@@ -73,7 +74,8 @@ type TestMySQLRow struct {
 	Decimal    float64
 	Float      float64
 	Double     float64
-	Bit        []uint8
+	//Bit        []uint8
+	Boolean    bool
 	Char       string
 	Varchar    string
 	Binary     bool
@@ -122,7 +124,8 @@ func NewTestMySQLRow() *TestMySQLRow {
 		Decimal:    5.11,
 		Float:      5.1111,
 		Double:     1234.5678,
-		Bit:        []uint8{1},
+		//Bit:        []uint8{1},
+		Boolean:    true,
 		Char:       "1",
 		Varchar:    "varchar",
 		Binary:     true,
@@ -172,7 +175,8 @@ func (r *TestMySQLRow) Scan(row *sql.Rows) error {
 		&r.Decimal,    //Decimal    float64
 		&r.Float,      //Float      float64
 		&r.Double,     //Double     float64
-		&r.Bit,        //Bit        bool
+		//&r.Bit,        //Bit        []uint8
+		&r.Boolean,    //Boolean    tinyint(1)
 		&r.Char,       //Char       string
 		&r.Varchar,    //Varchar    string
 		&r.Binary,     //Binary     bool
@@ -213,7 +217,8 @@ func (r *TestMySQLRow) Insert(db *sql.DB) (sql.Result, error) {
 	params := []interface{}{
 		r.TinyInt, r.SmallInt, r.MediumInt, r.Int, r.BigInt,
 		r.Decimal, r.Float, r.Double,
-		r.Bit,
+		//r.Bit,
+		r.Boolean,
 		r.Char, r.Varchar,
 		r.Binary, r.Varbinary,
 		r.Tinyblob, r.Blob, r.Mediumblob, r.Longblob,
@@ -239,7 +244,8 @@ func (r *TestMySQLRow) Insert(db *sql.DB) (sql.Result, error) {
 	query := "INSERT INTO `all_types` SET" +
 		"`sql_tiny_int` = ?,`sql_small_int` = ?,`sql_medium_int` = ?,`sql_int` = ?,`sql_big_int` = ?," +
 		"`sql_decimal` = ?,`sql_float` = ?,`sql_double` = ?," +
-		"`sql_bit` = ?," +
+		//"`sql_bit` = ?," +
+		"`sql_boolean` = ?," +
 		"`sql_char` = ?,`sql_varchar` = ?," +
 		"`sql_binary` = ?,`sql_varbinary` = ?," +
 		"`sql_tinyblob` = ?,`sql_blob` = ?,`sql_mediumblob` = ?,`sql_longblob` = ?," +
@@ -298,6 +304,14 @@ func Test_Mysql(t *testing.T) {
 			panic(err)
 		}
 	}()
+
+	// Clean
+	if _, err = localDB.Exec(MySQLDropTableQuery); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = rdsDB.Exec(MySQLDropTableQuery); err != nil {
+		t.Fatal(err)
+	}
 
 	Convey("Mysql", t, func() {
 		result, err := rdsDB.Exec(MySQLCreateTableQuery)
