@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
+	"time"
 )
 
 // FieldConverter is a function that converts the passed result row field into the expected type.
@@ -118,6 +119,13 @@ func ConvertNamedValue(arg driver.NamedValue) (value *rdsdataservice.SqlParamete
 		value = &rdsdataservice.SqlParameter{
 			Name:  &name,
 			Value: &rdsdataservice.Field{LongValue: aws.Int64(int64(t))},
+		}
+	case time.Time:
+		value = &rdsdataservice.SqlParameter{
+			Name: &name,
+			Value: &rdsdataservice.Field{
+				StringValue: aws.String(t.Format("2006-01-02 15:04:05.999")),
+			},
 		}
 	case nil:
 		value = &rdsdataservice.SqlParameter{
