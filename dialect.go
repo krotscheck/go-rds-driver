@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
+	"reflect"
 	"time"
 )
 
@@ -37,7 +38,8 @@ func ConvertNamedValues(args []driver.NamedValue) ([]*rdsdataservice.SqlParamete
 // ConvertNamedValue from a NamedValue to an SqlParameter
 func ConvertNamedValue(arg driver.NamedValue) (value *rdsdataservice.SqlParameter, err error) {
 	name := arg.Name
-	if arg.Value == nil {
+
+	if isNil(arg.Value) {
 		value = &rdsdataservice.SqlParameter{
 			Name:  &name,
 			Value: &rdsdataservice.Field{IsNull: aws.Bool(true)},
@@ -137,4 +139,15 @@ func ConvertNamedValue(arg driver.NamedValue) (value *rdsdataservice.SqlParamete
 		return
 	}
 	return
+}
+
+func isNil(i interface{}) bool {
+	if i == nil {
+		return true
+	}
+	switch reflect.TypeOf(i).Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
+		return reflect.ValueOf(i).IsNil()
+	}
+	return false
 }

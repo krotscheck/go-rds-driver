@@ -24,7 +24,7 @@ const MySQLCreateTableQuery = "CREATE TABLE IF NOT EXISTS `all_types` (" +
 	"`sql_float` double," +
 	"`sql_double` DOUBLE," +
 	//"`sql_bit` BIT," +
-	"`sql_boolean` TINYINT(1)," +
+	"`sql_boolean` TINYINT(2)," +
 	"`sql_char` CHAR," +
 	"`sql_varchar` VARCHAR(100)," +
 	"`sql_binary` BINARY," +
@@ -65,15 +65,15 @@ const MySQLDropTableQuery = "DROP TABLE IF EXISTS `all_types`;"
 
 // TestMySQLRow of data persisted to mysql
 type TestMySQLRow struct {
-	ID         int32
-	TinyInt    int8
-	SmallInt   int8
-	MediumInt  int8
-	Int        int8
-	BigInt     int8
-	Decimal    float64
-	Float      float64
-	Double     float64
+	ID        int32
+	TinyInt   int8
+	SmallInt  int8
+	MediumInt int8
+	Int       int8
+	BigInt    int8
+	Decimal   float64
+	Float     float64
+	Double    float64
 	//Bit        []uint8
 	Boolean    bool
 	Char       string
@@ -116,14 +116,14 @@ func NewTestMySQLRow() *TestMySQLRow {
 	_, _ = rand.Read(bytes)
 
 	t := &TestMySQLRow{
-		TinyInt:    1,
-		SmallInt:   2,
-		MediumInt:  3,
-		Int:        4,
-		BigInt:     5,
-		Decimal:    5.11,
-		Float:      5.1111,
-		Double:     1234.5678,
+		TinyInt:   1,
+		SmallInt:  2,
+		MediumInt: 3,
+		Int:       4,
+		BigInt:    5,
+		Decimal:   5.11,
+		Float:     5.1111,
+		Double:    1234.5678,
 		//Bit:        []uint8{1},
 		Boolean:    true,
 		Char:       "1",
