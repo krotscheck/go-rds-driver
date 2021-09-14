@@ -112,9 +112,9 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 		// Bit values appear to be returned as boolean values
 		return func(field *rdsdataservice.Field) (interface{}, error) {
 			if aws.BoolValue(field.BooleanValue) {
-				return []uint8{1}, nil
+				return 1, nil
 			}
-			return []uint8{0}, nil
+			return 0, nil
 		}
 	case "TINYTEXT":
 		fallthrough
