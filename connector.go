@@ -4,19 +4,19 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rdsdataservice"
-	"github.com/aws/aws-sdk-go/service/rdsdataservice/rdsdataserviceiface"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
 	"log"
 	"strings"
 	"time"
 )
 
 // NewConnector from the provided configuration fields
-func NewConnector(d driver.Driver, api rdsdataserviceiface.RDSDataServiceAPI, conf *Config) *Connector {
+func NewConnector(d driver.Driver, client *rdsdata.Client, conf *Config) *Connector {
 	return &Connector{
 		driver: d,
-		rds:    api,
+		rds:    client,
 		conf:   conf,
 	}
 }
@@ -24,7 +24,7 @@ func NewConnector(d driver.Driver, api rdsdataserviceiface.RDSDataServiceAPI, co
 // Connector spits out connections to our database.
 type Connector struct {
 	driver               driver.Driver
-	rds                  rdsdataserviceiface.RDSDataServiceAPI
+	rds                  *rdsdata.Client
 	conf                 *Config
 	lastSuccessfulWakeup time.Time
 	dialect              Dialect
@@ -51,16 +51,17 @@ func (r *Connector) Driver() driver.Driver {
 
 // Wakeup the cluster if it's dormant
 func (r *Connector) Wakeup() (dialect Dialect, err error) {
-	request := &rdsdataservice.ExecuteStatementInput{
+	request := &rdsdata.ExecuteStatementInput{
 		ResourceArn: aws.String(r.conf.ResourceArn),
 		Database:    aws.String(r.conf.Database),
 		SecretArn:   aws.String(r.conf.SecretArn),
 		Sql:         aws.String("/* wakeup */ SELECT VERSION()"), // This works for all databases, I think.
-		Parameters:  []*rdsdataservice.SqlParameter{},
+		Parameters:  []types.SqlParameter{},
 	}
 
 	err = r.retry(10, time.Second, func() error {
-		out, err := r.rds.ExecuteStatement(request)
+		out, err := r.rds.ExecuteStatement(context.TODO(), request)
+
 		if err != nil {
 			return err
 		}
@@ -68,19 +69,25 @@ func (r *Connector) Wakeup() (dialect Dialect, err error) {
 		if len(out.Records) < 1 {
 			return fmt.Errorf("invalid response to version request")
 		}
+
 		row := out.Records[0]
+
 		if len(row) < 1 {
 			return fmt.Errorf("invalid response to version request")
 		}
+
 		field := row[0]
-		version := aws.StringValue(field.StringValue)
+		version := field.(*types.FieldMemberStringValue).Value
+
 		if strings.Contains(strings.ToLower(version), "postgres") {
 			dialect = NewPostgres(r.conf)
 		} else {
 			dialect = NewMySQL(r.conf)
 		}
+
 		return err
 	})
+
 	return
 }
 

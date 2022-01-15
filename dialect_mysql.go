@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rdsdataservice"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
 	"regexp"
 	"strconv"
 	"time"
@@ -24,7 +25,7 @@ type DialectMySQL struct {
 }
 
 // MigrateQuery converts a mysql query into an RDS stateement.
-func (d *DialectMySQL) MigrateQuery(query string, args []driver.NamedValue) (*rdsdataservice.ExecuteStatementInput, error) {
+func (d *DialectMySQL) MigrateQuery(query string, args []driver.NamedValue) (*rdsdata.ExecuteStatementInput, error) {
 	// Make sure we're not mixing and matching.
 	ordinal := false
 	named := false
@@ -58,20 +59,20 @@ func (d *DialectMySQL) MigrateQuery(query string, args []driver.NamedValue) (*rd
 		})
 
 		params, err := ConvertNamedValues(namedArgs)
-		return &rdsdataservice.ExecuteStatementInput{
+		return &rdsdata.ExecuteStatementInput{
 			Parameters: params,
 			Sql:        aws.String(query),
 		}, err
 	}
 
 	params, err := ConvertNamedValues(args)
-	return &rdsdataservice.ExecuteStatementInput{
+	return &rdsdata.ExecuteStatementInput{
 		Parameters: params,
 		Sql:        aws.String(query),
 	}, err
 }
 
-// GetFieldConverter knows how to parse column results.s
+// GetFieldConverter knows how to parse column results.
 func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 	switch columnType {
 	case "TINYINT UNSIGNED":
@@ -83,8 +84,8 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 	case "INT UNSIGNED":
 		fallthrough
 	case "BIGINT UNSIGNED":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return uint64(aws.Int64Value(field.LongValue)), nil
+		return func(field types.Field) (interface{}, error) {
+			return uint64(field.(*types.FieldMemberLongValue).Value), nil
 		}
 	case "TINYINT":
 		fallthrough
@@ -95,23 +96,23 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 	case "INT":
 		fallthrough
 	case "BIGINT":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return aws.Int64Value(field.LongValue), nil
+		return func(field types.Field) (interface{}, error) {
+			return field.(*types.FieldMemberLongValue).Value, nil
 		}
 	case "DECIMAL":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return strconv.ParseFloat(aws.StringValue(field.StringValue), 64)
+		return func(field types.Field) (interface{}, error) {
+			return strconv.ParseFloat(field.(*types.FieldMemberStringValue).Value, 64)
 		}
 	case "FLOAT":
 		fallthrough
 	case "DOUBLE":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return aws.Float64Value(field.DoubleValue), nil
+		return func(field types.Field) (interface{}, error) {
+			return aws.Float64(field.(*types.FieldMemberDoubleValue).Value), nil
 		}
 	case "BIT":
 		// Bit values appear to be returned as boolean values
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			if aws.BoolValue(field.BooleanValue) {
+		return func(field types.Field) (interface{}, error) {
+			if field.(*types.FieldMemberBooleanValue).Value {
 				return 1, nil
 			}
 			return 0, nil
@@ -127,41 +128,45 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 	case "CHAR":
 		fallthrough
 	case "VARCHAR":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return aws.StringValue(field.StringValue), nil
+		return func(field types.Field) (interface{}, error) {
+			return field.(*types.FieldMemberStringValue).Value, nil
 		}
 	case "DATE":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
+		return func(field types.Field) (interface{}, error) {
+			date_str_val := field.(*types.FieldMemberStringValue).Value
 			if d.parseTime {
-				return time.Parse("2006-01-02", aws.StringValue(field.StringValue))
+				return time.Parse("2006-01-02", date_str_val)
 			}
-			return aws.StringValue(field.StringValue), nil
+			return date_str_val, nil
 		}
 	case "TIME":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
+		return func(field types.Field) (interface{}, error) {
+			time_str_val := field.(*types.FieldMemberStringValue).Value
 			if d.parseTime {
-				return time.Parse("15:04:05", aws.StringValue(field.StringValue))
+				return time.Parse("15:04:05", time_str_val)
 			}
-			return aws.StringValue(field.StringValue), nil
+			return time_str_val, nil
 		}
 	case "DATETIME":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
+		return func(field types.Field) (interface{}, error) {
+			dt_str_val := field.(*types.FieldMemberStringValue).Value
 			if d.parseTime {
-				return time.Parse("2006-01-02 15:04:05", aws.StringValue(field.StringValue))
+				return time.Parse("2006-01-02 15:04:05", dt_str_val)
 			}
-			return aws.StringValue(field.StringValue), nil
+			return dt_str_val, nil
 		}
 	case "TIMESTAMP":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
+		return func(field types.Field) (interface{}, error) {
+			ts_str_val := field.(*types.FieldMemberStringValue).Value
 			if d.parseTime {
-				return time.Parse("2006-01-02 15:04:05", aws.StringValue(field.StringValue))
+				return time.Parse("2006-01-02 15:04:05", ts_str_val)
 			}
-			return aws.StringValue(field.StringValue), nil
+			return ts_str_val, nil
 		}
 	case "YEAR":
 		// RDS sends a full date string. MySQL only returns the year.
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			t, err := time.Parse("2006-01-02", aws.StringValue(field.StringValue))
+		return func(field types.Field) (interface{}, error) {
+			t, err := time.Parse("2006-01-02", field.(*types.FieldMemberStringValue).Value)
 			if err != nil {
 				return nil, err
 			}
@@ -181,11 +186,11 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 	case "MEDIUMBLOB":
 		fallthrough
 	case "LONGBLOB":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return field.BlobValue, nil
+		return func(field types.Field) (interface{}, error) {
+			return field.(*types.FieldMemberBlobValue).Value, nil
 		}
 	}
-	return func(field *rdsdataservice.Field) (interface{}, error) {
+	return func(field types.Field) (interface{}, error) {
 		return nil, fmt.Errorf("unknown type %s, please submit a PR", columnType)
 	}
 }

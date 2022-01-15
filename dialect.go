@@ -3,19 +3,19 @@ package rds
 import (
 	"database/sql/driver"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rdsdataservice"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
 	"reflect"
 	"time"
 )
 
 // FieldConverter is a function that converts the passed result row field into the expected type.
-type FieldConverter func(field *rdsdataservice.Field) (interface{}, error)
+type FieldConverter func(field types.Field) (interface{}, error)
 
 // Dialect is an interface that encapsulates a particular languages' eccentricities
 type Dialect interface {
 	// MigrateQuery from the dialect to RDS
-	MigrateQuery(string, []driver.NamedValue) (*rdsdataservice.ExecuteStatementInput, error)
+	MigrateQuery(string, []driver.NamedValue) (*rdsdata.ExecuteStatementInput, error)
 	// GetFieldConverter for a given ColumnMetadata.TypeName field.
 	GetFieldConverter(columnType string) FieldConverter
 	// IsIsolationLevelSupported for this dialect?
@@ -23,8 +23,8 @@ type Dialect interface {
 }
 
 // ConvertNamedValues converts passed driver.NamedValue instances into RDS SQLParameters
-func ConvertNamedValues(args []driver.NamedValue) ([]*rdsdataservice.SqlParameter, error) {
-	var params = make([]*rdsdataservice.SqlParameter, len(args))
+func ConvertNamedValues(args []driver.NamedValue) ([]types.SqlParameter, error) {
+	var params = make([]types.SqlParameter, len(args))
 	for i, arg := range args {
 		sqlParam, err := ConvertNamedValue(arg)
 		if err != nil {
@@ -36,103 +36,103 @@ func ConvertNamedValues(args []driver.NamedValue) ([]*rdsdataservice.SqlParamete
 }
 
 // ConvertNamedValue from a NamedValue to an SqlParameter
-func ConvertNamedValue(arg driver.NamedValue) (value *rdsdataservice.SqlParameter, err error) {
+func ConvertNamedValue(arg driver.NamedValue) (value types.SqlParameter, err error) {
 	name := arg.Name
 
 	if isNil(arg.Value) {
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{IsNull: aws.Bool(true)},
+			Value: &types.FieldMemberIsNull{Value: true},
 		}
 		return
 	}
 	switch t := arg.Value.(type) {
 	case string:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{StringValue: aws.String(t)},
+			Value: &types.FieldMemberStringValue{Value: t},
 		}
 	case []byte:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{BlobValue: t},
+			Value: &types.FieldMemberBlobValue{Value: t},
 		}
 	case bool:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{BooleanValue: &t},
+			Value: &types.FieldMemberBooleanValue{Value: t},
 		}
 	case float32:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{DoubleValue: aws.Float64(float64(t))},
+			Value: &types.FieldMemberDoubleValue{Value: float64(t)},
 		}
 	case float64:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{DoubleValue: &t},
+			Value: &types.FieldMemberDoubleValue{Value: float64(t)},
 		}
 	case int:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{LongValue: aws.Int64(int64(t))},
+			Value: &types.FieldMemberLongValue{Value: int64(t)},
 		}
 	case int8:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{LongValue: aws.Int64(int64(t))},
+			Value: &types.FieldMemberLongValue{Value: int64(t)},
 		}
 	case int16:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{LongValue: aws.Int64(int64(t))},
+			Value: &types.FieldMemberLongValue{Value: int64(t)},
 		}
 	case int32:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{LongValue: aws.Int64(int64(t))},
+			Value: &types.FieldMemberLongValue{Value: int64(t)},
 		}
 	case int64:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{LongValue: aws.Int64(t)},
+			Value: &types.FieldMemberLongValue{Value: t},
 		}
 	case uint:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{LongValue: aws.Int64(int64(t))},
+			Value: &types.FieldMemberLongValue{Value: int64(t)},
 		}
 	case uint8:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{BlobValue: []byte{t}},
+			Value: &types.FieldMemberBlobValue{Value: []byte{t}},
 		}
 	case uint16:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{LongValue: aws.Int64(int64(t))},
+			Value: &types.FieldMemberLongValue{Value: int64(t)},
 		}
 	case uint32:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{LongValue: aws.Int64(int64(t))},
+			Value: &types.FieldMemberLongValue{Value: int64(t)},
 		}
 	case uint64:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{LongValue: aws.Int64(int64(t))},
+			Value: &types.FieldMemberLongValue{Value: int64(t)},
 		}
 	case time.Time:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name: &name,
-			Value: &rdsdataservice.Field{
-				StringValue: aws.String(t.Format("2006-01-02 15:04:05.999")),
+			Value: &types.FieldMemberStringValue{
+				Value: t.Format("2006-01-02 15:04:05.999"),
 			},
 		}
 	case nil:
-		value = &rdsdataservice.SqlParameter{
+		value = types.SqlParameter{
 			Name:  &name,
-			Value: &rdsdataservice.Field{IsNull: aws.Bool(true)},
+			Value: &types.FieldMemberIsNull{Value: true},
 		}
 	default:
 		err = fmt.Errorf("%s is unsupported type: %#v", name, arg.Value)

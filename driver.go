@@ -4,9 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/rdsdataservice"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
 )
 
 // DRIVERNAME is used when configuring your dialector
@@ -18,8 +17,7 @@ func NewDriver() *Driver {
 }
 
 // Driver implements the driver.Driver interface for RDS
-type Driver struct {
-}
+type Driver struct {}
 
 // Open returns a new connection to the database.
 func (r *Driver) Open(name string) (driver.Conn, error) {
@@ -37,14 +35,16 @@ func (r *Driver) OpenConnector(dsn string) (*Connector, error) {
 		return nil, err
 	}
 
-	awsConfig := aws.NewConfig().WithRegion(conf.AWSRegion)
-	awsSession, err := session.NewSession(awsConfig)
+	awsConfig, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(conf.AWSRegion))
+
 	if err != nil {
 		return nil, err
 	}
-	rdsAPI := rdsdataservice.New(awsSession)
 
-	return NewConnector(r, rdsAPI, conf), nil
+	client := rdsdata.NewFromConfig(awsConfig)
+
+	return NewConnector(r, client, conf), nil
 }
 
 func init() {

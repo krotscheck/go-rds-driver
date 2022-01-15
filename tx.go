@@ -1,10 +1,11 @@
 package rds
 
 import (
+	"context"
 	"database/sql"
 	"database/sql/driver"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rdsdataservice"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
 )
 
 // NewTx creates a new transaction
@@ -29,7 +30,7 @@ func (r *Tx) Commit() error {
 		return sql.ErrTxDone
 	}
 
-	_, err := r.conn.rds.CommitTransaction(&rdsdataservice.CommitTransactionInput{
+	_, err := r.conn.rds.CommitTransaction(context.TODO(), &rdsdata.CommitTransactionInput{
 		ResourceArn:   aws.String(r.conn.resourceARN),
 		SecretArn:     aws.String(r.conn.secretARN),
 		TransactionId: r.TransactionID,
@@ -49,7 +50,7 @@ func (r *Tx) Rollback() error {
 	if r.Done {
 		return sql.ErrTxDone
 	}
-	_, err := r.conn.rds.RollbackTransaction(&rdsdataservice.RollbackTransactionInput{
+	_, err := r.conn.rds.RollbackTransaction(context.TODO(), &rdsdata.RollbackTransactionInput{
 		ResourceArn:   aws.String(r.conn.resourceARN),
 		SecretArn:     aws.String(r.conn.secretARN),
 		TransactionId: r.TransactionID,

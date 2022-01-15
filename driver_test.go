@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-//go:generate mockgen -package rds_test -destination rdsdataservice_mocks_test.go github.com/aws/aws-sdk-go/service/rdsdataservice/rdsdataserviceiface RDSDataServiceAPI
+//go:generate mockgen -package rds_test -destination rdsdata_mocks_test.go github.com/aws/aws-sdk-go-v2/service/rdsdatas Client
 
 func Test_Driver(t *testing.T) {
 	Convey("Driver", t, func() {

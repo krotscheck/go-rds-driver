@@ -5,14 +5,14 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rdsdataservice"
-	"github.com/aws/aws-sdk-go/service/rdsdataservice/rdsdataserviceiface"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
 	"strings"
 )
 
 // NewConnection that can make transaction and statement requests against RDS
-func NewConnection(ctx context.Context, rds rdsdataserviceiface.RDSDataServiceAPI, resourceARN string, secretARN string, database string, dialect Dialect) driver.Conn {
+func NewConnection(ctx context.Context, rds *rdsdata.Client, resourceARN string, secretARN string, database string, dialect Dialect) driver.Conn {
 	return &Connection{
 		ctx:         ctx,
 		rds:         rds,
@@ -27,7 +27,7 @@ func NewConnection(ctx context.Context, rds rdsdataserviceiface.RDSDataServiceAP
 // Connection to RDS's Aurora Serverless Data API
 type Connection struct {
 	ctx         context.Context
-	rds         rdsdataserviceiface.RDSDataServiceAPI
+	rds         *rdsdata.Client
 	resourceARN string
 	secretARN   string
 	database    string
@@ -38,12 +38,12 @@ type Connection struct {
 
 // Ping the database
 func (r *Connection) Ping(ctx context.Context) (err error) {
-	_, err = r.rds.ExecuteStatementWithContext(ctx, &rdsdataservice.ExecuteStatementInput{
-		ResourceArn: aws.String(r.resourceARN),
-		Database:    aws.String(r.database),
-		SecretArn:   aws.String(r.secretARN),
+	_, err = r.rds.ExecuteStatement(ctx, &rdsdata.ExecuteStatementInput{
+		ResourceArn: &r.resourceARN,
+		Database:    &r.database,
+		SecretArn:   &r.secretARN,
 		Sql:         aws.String("/* ping */ SELECT 1"), // This works for all databases, I think.
-		Parameters:  []*rdsdataservice.SqlParameter{},
+		Parameters:  []types.SqlParameter{},
 	})
 	return
 }
@@ -99,7 +99,7 @@ func (r *Connection) BeginTx(ctx context.Context, opts driver.TxOptions) (driver
 	query := fmt.Sprintf("SET TRANSACTION %s", strings.Join(clause, ", "))
 
 	// Start the transaction
-	output, err := r.rds.BeginTransactionWithContext(ctx, &rdsdataservice.BeginTransactionInput{
+	output, err := r.rds.BeginTransaction(ctx, &rdsdata.BeginTransactionInput{
 		Database:    aws.String(r.database),
 		ResourceArn: aws.String(r.resourceARN),
 		SecretArn:   aws.String(r.secretARN),

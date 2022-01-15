@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rdsdataservice"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
 	"regexp"
 	"strconv"
 	"strings"
@@ -25,7 +26,7 @@ type DialectPostgres struct {
 }
 
 // MigrateQuery from Postgres to RDS.
-func (d *DialectPostgres) MigrateQuery(query string, args []driver.NamedValue) (*rdsdataservice.ExecuteStatementInput, error) {
+func (d *DialectPostgres) MigrateQuery(query string, args []driver.NamedValue) (*rdsdata.ExecuteStatementInput, error) {
 	// Make sure we're not mixing and matching.
 	ordinal := false
 	named := false
@@ -57,13 +58,13 @@ func (d *DialectPostgres) MigrateQuery(query string, args []driver.NamedValue) (
 		})
 
 		params, err := ConvertNamedValues(namedArgs)
-		return &rdsdataservice.ExecuteStatementInput{
+		return &rdsdata.ExecuteStatementInput{
 			Parameters: params,
 			Sql:        aws.String(query),
 		}, err
 	}
 	params, err := ConvertNamedValues(args)
-	return &rdsdataservice.ExecuteStatementInput{
+	return &rdsdata.ExecuteStatementInput{
 		Parameters: params,
 		Sql:        aws.String(query),
 	}, err
@@ -73,40 +74,40 @@ func (d *DialectPostgres) MigrateQuery(query string, args []driver.NamedValue) (
 func (d *DialectPostgres) GetFieldConverter(columnType string) FieldConverter {
 	switch strings.ToLower(columnType) {
 	case "serial":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return aws.Int64Value(field.LongValue), nil
+		return func(field types.Field) (interface{}, error) {
+			return field.(*types.FieldMemberLongValue).Value, nil
 		}
 	case "bool":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return aws.BoolValue(field.BooleanValue), nil
+		return func(field types.Field) (interface{}, error) {
+			return field.(*types.FieldMemberBooleanValue).Value, nil
 		}
 	case "bpchar":
 		fallthrough
 	case "varchar":
 		fallthrough
 	case "text":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return aws.StringValue(field.StringValue), nil
+		return func(field types.Field) (interface{}, error) {
+			return field.(*types.FieldMemberStringValue).Value, nil
 		}
 	case "int2":
 		fallthrough
 	case "int4":
 		fallthrough
 	case "int8":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return aws.Int64Value(field.LongValue), nil
+		return func(field types.Field) (interface{}, error) {
+			return field.(*types.FieldMemberLongValue).Value, nil
 		}
 	case "numeric":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return strconv.ParseFloat(aws.StringValue(field.StringValue), 64)
+		return func(field types.Field) (interface{}, error) {
+			return strconv.ParseFloat(field.(*types.FieldMemberStringValue).Value, 64)
 		}
 	case "float4":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			return aws.Float64Value(field.DoubleValue), nil
+		return func(field types.Field) (interface{}, error) {
+			return field.(*types.FieldMemberDoubleValue).Value, nil
 		}
 	case "date":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			t, err := time.Parse("2006-01-02", aws.StringValue(field.StringValue))
+		return func(field types.Field) (interface{}, error) {
+			t, err := time.Parse("2006-01-02", field.(*types.FieldMemberStringValue).Value)
 			if err != nil {
 				return nil, err
 			}
@@ -116,15 +117,16 @@ func (d *DialectPostgres) GetFieldConverter(columnType string) FieldConverter {
 			return t.Format(time.RFC3339), nil
 		}
 	case "time":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
+		return func(field types.Field) (interface{}, error) {
+			time_str_val := field.(*types.FieldMemberStringValue).Value
 			if d.parseTime {
-				return time.Parse("15:04:05", aws.StringValue(field.StringValue))
+				return time.Parse("15:04:05", time_str_val)
 			}
-			return aws.StringValue(field.StringValue), nil
+			return time_str_val, nil
 		}
 	case "timestamp":
-		return func(field *rdsdataservice.Field) (interface{}, error) {
-			t, err := time.Parse("2006-01-02 15:04:05", aws.StringValue(field.StringValue))
+		return func(field types.Field) (interface{}, error) {
+			t, err := time.Parse("2006-01-02 15:04:05", field.(*types.FieldMemberStringValue).Value)
 			if err != nil {
 				return nil, err
 			}

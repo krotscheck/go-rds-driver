@@ -3,13 +3,13 @@ package rds
 import (
 	"database/sql/driver"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rdsdataservice"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
 	"io"
 )
 
 // NewRows instance for the provided statement output
-func NewRows(dialect Dialect, out *rdsdataservice.ExecuteStatementOutput) driver.Rows {
+func NewRows(dialect Dialect, out *rdsdata.ExecuteStatementOutput) driver.Rows {
 	converters := make([]FieldConverter, len(out.ColumnMetadata))
 	names := make([]string, len(out.ColumnMetadata))
 	for i, col := range out.ColumnMetadata {
@@ -27,7 +27,7 @@ func NewRows(dialect Dialect, out *rdsdataservice.ExecuteStatementOutput) driver
 
 // Rows implementation for the RDS Driver
 type Rows struct {
-	out            *rdsdataservice.ExecuteStatementOutput
+	out            *rdsdata.ExecuteStatementOutput
 	columnNames    []string
 	converters     []FieldConverter
 	recordPosition int
@@ -49,19 +49,27 @@ func (r *Rows) Next(dest []driver.Value) error {
 	if r.recordPosition == len(r.out.Records) {
 		return io.EOF
 	}
+
 	row := r.out.Records[r.recordPosition]
 	r.recordPosition++
 
 	for i, field := range row {
-		if aws.BoolValue(field.IsNull) {
+		switch field.(type) {
+		case *types.FieldMemberIsNull:
 			dest[i] = nil
 			continue
+		default:
+			break
 		}
+
 		converter := r.converters[i]
 		coerced, err := converter(field)
+
 		if err != nil {
+			fmt.Printf("Metadata for failed column: %#v", r.out.ColumnMetadata[i])
 			return fmt.Errorf("convertValue(col=%d): %v", i, err)
 		}
+
 		dest[i] = coerced
 	}
 

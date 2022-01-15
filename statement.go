@@ -3,8 +3,8 @@ package rds
 import (
 	"context"
 	"database/sql/driver"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rdsdataservice"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
 )
 
 // NewStatement for the provided connection
@@ -89,8 +89,9 @@ func (s *Statement) ConvertOrdinal(values []driver.Value) []driver.NamedValue {
 	return namedValues
 }
 
-func (s *Statement) executeStatement(ctx context.Context, query string, values []driver.NamedValue) (*rdsdataservice.ExecuteStatementOutput, error) {
+func (s *Statement) executeStatement(ctx context.Context, query string, values []driver.NamedValue) (*rdsdata.ExecuteStatementOutput, error) {
 	input, err := s.conn.dialect.MigrateQuery(query, values)
+
 	if err != nil {
 		return nil, err
 	}
@@ -99,9 +100,9 @@ func (s *Statement) executeStatement(ctx context.Context, query string, values [
 		input.TransactionId = s.conn.tx.TransactionID
 	}
 
-	input.IncludeResultMetadata = aws.Bool(true)
+	input.IncludeResultMetadata = true
 	input.ResourceArn = aws.String(s.conn.resourceARN)
 	input.SecretArn = aws.String(s.conn.secretARN)
 	input.Database = aws.String(s.conn.database)
-	return s.conn.rds.ExecuteStatementWithContext(ctx, input)
+	return s.conn.rds.ExecuteStatement(ctx, input)
 }

@@ -3,18 +3,18 @@ package rds
 import (
 	"database/sql/driver"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/rdsdataservice"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
 )
 
 // NewResult for the executed statement
-func NewResult(out *rdsdataservice.ExecuteStatementOutput) driver.Result {
+func NewResult(out *rdsdata.ExecuteStatementOutput) driver.Result {
 	return &Result{out: out}
 }
 
 // Result from a query
 type Result struct {
-	out *rdsdataservice.ExecuteStatementOutput
+	out *rdsdata.ExecuteStatementOutput
 }
 
 // LastInsertId from the executed statement.
@@ -24,14 +24,20 @@ func (r *Result) LastInsertId() (int64, error) {
 	} else if l != 1 {
 		return 0, fmt.Errorf("%d generated fields in result: %v", l, r.out.GeneratedFields)
 	}
-	f := r.out.GeneratedFields[0]
-	if f.LongValue != nil {
-		return aws.Int64Value(f.LongValue), nil
+
+	field := r.out.GeneratedFields[0]
+
+	switch fv := field.(type) {
+	case *types.FieldMemberLongValue:
+		return fv.Value, nil
+	default:
+		break
 	}
-	return 0, fmt.Errorf("unhandled generated field type: %v", f)
+
+	return 0, fmt.Errorf("unhandled generated field type: %v", field)
 }
 
 // RowsAffected count
 func (r *Result) RowsAffected() (int64, error) {
-	return aws.Int64Value(r.out.NumberOfRecordsUpdated), nil
+	return r.out.NumberOfRecordsUpdated, nil
 }
