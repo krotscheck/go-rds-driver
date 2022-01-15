@@ -3,7 +3,6 @@ package rds
 import (
 	"database/sql"
 	"database/sql/driver"
-	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
 	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
@@ -136,9 +135,8 @@ func (d *DialectPostgres) GetFieldConverter(columnType string) FieldConverter {
 			return t.Format(time.RFC3339), nil
 		}
 	}
-	return func(field types.Field) (interface{}, error) {
-		return nil, fmt.Errorf("unknown type %s, please submit a PR", columnType)
-	}
+
+	return ConversionFallback()
 }
 
 // IsIsolationLevelSupported for postgres?

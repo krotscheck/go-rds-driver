@@ -190,9 +190,8 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 			return field.(*types.FieldMemberBlobValue).Value, nil
 		}
 	}
-	return func(field types.Field) (interface{}, error) {
-		return nil, fmt.Errorf("unknown type %s, please submit a PR", columnType)
-	}
+
+	return ConversionFallback()
 }
 
 // IsIsolationLevelSupported for mysql?
