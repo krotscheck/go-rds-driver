@@ -3,7 +3,6 @@ package rds
 import (
 	"database/sql"
 	"database/sql/driver"
-	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
 	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
@@ -137,30 +136,7 @@ func (d *DialectPostgres) GetFieldConverter(columnType string) FieldConverter {
 		}
 	}
 
-	// For unknown field types (like custom ENUM types) we fall back to the
-	// value type of the field.
-	return func(field types.Field) (value interface{}, err error) {
-		switch v := field.(type) {
-		case *types.FieldMemberArrayValue:
-			value = v.Value;
-		case *types.FieldMemberBlobValue:
-			value = v.Value
-		case *types.FieldMemberBooleanValue:
-			value = v.Value
-		case *types.FieldMemberDoubleValue:
-			value = v.Value
-		case *types.FieldMemberLongValue:
-			value = v.Value
-		case *types.FieldMemberStringValue:
-			value = v.Value
-		case *types.FieldMemberIsNull:
-			return nil, nil
-		default:
-			return nil, fmt.Errorf("Unrecognized RDS field type: %#v", field)
-		}
-
-		return
-	}
+	return ConversionFallback()
 }
 
 // IsIsolationLevelSupported for postgres?
