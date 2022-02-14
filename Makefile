@@ -14,7 +14,11 @@ reports:
 rdsdataservice_mocks_test.go:
 	go generate ./...
 
-test: reports/coverage.xml reports/html/index.html
+test_deps:
+	go install gotest.tools/gotestsum@v1.7.0
+	go install github.com/golang/mock/mockgen@v1.6.0
+
+test: test_deps reports/coverage.xml reports/html/index.html
 
 vet: reports
 	go vet ./...
