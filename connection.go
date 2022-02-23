@@ -12,7 +12,7 @@ import (
 )
 
 // NewConnection that can make transaction and statement requests against RDS
-func NewConnection(ctx context.Context, rds *rdsdata.Client, resourceARN string, secretARN string, database string, dialect Dialect) driver.Conn {
+func NewConnection(ctx context.Context, rds AWSClientInterface, resourceARN string, secretARN string, database string, dialect Dialect) driver.Conn {
 	return &Connection{
 		ctx:         ctx,
 		rds:         rds,
@@ -27,7 +27,7 @@ func NewConnection(ctx context.Context, rds *rdsdata.Client, resourceARN string,
 // Connection to RDS's Aurora Serverless Data API
 type Connection struct {
 	ctx         context.Context
-	rds         *rdsdata.Client
+	rds         AWSClientInterface
 	resourceARN string
 	secretARN   string
 	database    string

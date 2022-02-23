@@ -113,9 +113,12 @@ cd ./terraform
 terraform destroy
 ```
 
-Once created, the output values should be exported as environment variables, as follows:
+Once created, the output values will be defined in a local file named `terraform.tfstate`. These
+are parsed by our makefile to ensure the correct values are used in the test suite, however
+for your local IDE it might be useful to set them directly:
 
 ```shell
+export AWS_PROFILE = "your_aws_profile"
 export RDS_MYSQL_DB_NAME = "go_rds_driver_mysql"
 export RDS_MYSQL_ARN = "arn:aws:rds:us-west-2:1234567890:cluster:mysql"
 export RDS_POSTGRES_DB_NAME = "go_rds_driver_postgresql"
@@ -124,6 +127,7 @@ export RDS_SECRET_ARN = "arn:aws:secretsmanager:us-west-2:1234567890:secret:auro
 export AWS_REGION=us-west-2
 ```
 
+### Executing checks
 Executing tests and generating reports can be done via the provided makefile.
 ```shell
 make clean checks

@@ -107,7 +107,7 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 		fallthrough
 	case "DOUBLE":
 		return func(field types.Field) (interface{}, error) {
-			return aws.Float64(field.(*types.FieldMemberDoubleValue).Value), nil
+			return field.(*types.FieldMemberDoubleValue).Value, nil
 		}
 	case "BIT":
 		// Bit values appear to be returned as boolean values
@@ -133,35 +133,35 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 		}
 	case "DATE":
 		return func(field types.Field) (interface{}, error) {
-			date_str_val := field.(*types.FieldMemberStringValue).Value
+			dateStringVal := field.(*types.FieldMemberStringValue).Value
 			if d.parseTime {
-				return time.Parse("2006-01-02", date_str_val)
+				return time.Parse("2006-01-02", dateStringVal)
 			}
-			return date_str_val, nil
+			return dateStringVal, nil
 		}
 	case "TIME":
 		return func(field types.Field) (interface{}, error) {
-			time_str_val := field.(*types.FieldMemberStringValue).Value
+			timeStringVal := field.(*types.FieldMemberStringValue).Value
 			if d.parseTime {
-				return time.Parse("15:04:05", time_str_val)
+				return time.Parse("15:04:05", timeStringVal)
 			}
-			return time_str_val, nil
+			return timeStringVal, nil
 		}
 	case "DATETIME":
 		return func(field types.Field) (interface{}, error) {
-			dt_str_val := field.(*types.FieldMemberStringValue).Value
+			dateTimeStringVal := field.(*types.FieldMemberStringValue).Value
 			if d.parseTime {
-				return time.Parse("2006-01-02 15:04:05", dt_str_val)
+				return time.Parse("2006-01-02 15:04:05", dateTimeStringVal)
 			}
-			return dt_str_val, nil
+			return dateTimeStringVal, nil
 		}
 	case "TIMESTAMP":
 		return func(field types.Field) (interface{}, error) {
-			ts_str_val := field.(*types.FieldMemberStringValue).Value
+			timestampStringVal := field.(*types.FieldMemberStringValue).Value
 			if d.parseTime {
-				return time.Parse("2006-01-02 15:04:05", ts_str_val)
+				return time.Parse("2006-01-02 15:04:05", timestampStringVal)
 			}
-			return ts_str_val, nil
+			return timestampStringVal, nil
 		}
 	case "YEAR":
 		// RDS sends a full date string. MySQL only returns the year.

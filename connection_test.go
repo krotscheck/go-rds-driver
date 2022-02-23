@@ -187,7 +187,7 @@ func Test_Connection(t *testing.T) {
 		Convey("IsValid", func() {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
-			mockRDS := NewMockRDSDataServiceAPI(ctrl)
+			mockRDS := NewMockAWSClientInterface(ctrl)
 
 			Convey("Closed", func() {
 				c := rds.NewConnection(ctx, mockRDS, "resourceARN", "secretARN", "database", &rds.DialectMySQL{})

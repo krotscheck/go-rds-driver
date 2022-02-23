@@ -13,7 +13,7 @@ import (
 )
 
 // NewConnector from the provided configuration fields
-func NewConnector(d driver.Driver, client *rdsdata.Client, conf *Config) *Connector {
+func NewConnector(d driver.Driver, client AWSClientInterface, conf *Config) *Connector {
 	return &Connector{
 		driver: d,
 		rds:    client,
@@ -24,7 +24,7 @@ func NewConnector(d driver.Driver, client *rdsdata.Client, conf *Config) *Connec
 // Connector spits out connections to our database.
 type Connector struct {
 	driver               driver.Driver
-	rds                  *rdsdata.Client
+	rds                  AWSClientInterface
 	conf                 *Config
 	lastSuccessfulWakeup time.Time
 	dialect              Dialect

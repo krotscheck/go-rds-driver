@@ -1,8 +1,10 @@
 package rds_test
 
 import (
+	"context"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
 	"github.com/krotscheck/go-rds-driver"
 	"os"
 	"strings"
@@ -45,22 +47,20 @@ func init() {
 }
 
 // ExpectWakeup can be used whenever we're mocking out a new connection
-func ExpectWakeup(mockRDS *MockRDSDataServiceAPI, conf *rds.Config) {
+func ExpectWakeup(mockRDS *MockAWSClientInterface, conf *rds.Config) {
 	mockRDS.EXPECT().
-		ExecuteStatement(&rdsdataservice.ExecuteStatementInput{
+		ExecuteStatement(context.Background(), &rdsdata.ExecuteStatementInput{
 			Database:    aws.String("database"),
 			ResourceArn: aws.String("resourceARN"),
 			SecretArn:   aws.String("secretARN"),
 			Sql:         aws.String("/* wakeup */ SELECT VERSION()"),
-			Parameters:  []*rdsdataservice.SqlParameter{},
+			Parameters:  []types.SqlParameter{},
 		}).
 		AnyTimes().
-		Return(&rdsdataservice.ExecuteStatementOutput{
-			Records: [][]*rdsdataservice.Field{
+		Return(&rdsdata.ExecuteStatementOutput{
+			Records: [][]types.Field{
 				{
-					&rdsdataservice.Field{
-						StringValue: aws.String("5.7.0"),
-					},
+					&types.FieldMemberStringValue{Value: "5.7.0"},
 				},
 			},
 		}, nil)

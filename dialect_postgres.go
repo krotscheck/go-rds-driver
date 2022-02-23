@@ -118,11 +118,11 @@ func (d *DialectPostgres) GetFieldConverter(columnType string) FieldConverter {
 		}
 	case "time":
 		return func(field types.Field) (interface{}, error) {
-			time_str_val := field.(*types.FieldMemberStringValue).Value
+			timeStringVal := field.(*types.FieldMemberStringValue).Value
 			if d.parseTime {
-				return time.Parse("15:04:05", time_str_val)
+				return time.Parse("15:04:05", timeStringVal)
 			}
-			return time_str_val, nil
+			return timeStringVal, nil
 		}
 	case "timestamp":
 		return func(field types.Field) (interface{}, error) {
@@ -136,7 +136,7 @@ func (d *DialectPostgres) GetFieldConverter(columnType string) FieldConverter {
 			return t.Format(time.RFC3339), nil
 		}
 	}
-	return func(field *rdsdataservice.Field) (interface{}, error) {
+	return func(field types.Field) (interface{}, error) {
 		return nil, fmt.Errorf("unknown type %s, please submit a PR", columnType)
 	}
 }

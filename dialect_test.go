@@ -29,11 +29,9 @@ func Test_Dialect(t *testing.T) {
 				}
 				result, err := rds.ConvertNamedValue(namedValue)
 				So(err, ShouldBeNil)
-				So(result, ShouldResemble, &types.SqlParameter{
-					Name: aws.String("name"),
-					Value: &types.Field{
-						IsNull: aws.Bool(true),
-					},
+				So(result, ShouldResemble, types.SqlParameter{
+					Name:  aws.String("name"),
+					Value: &types.FieldMemberIsNull{Value: true},
 				})
 			}
 		})

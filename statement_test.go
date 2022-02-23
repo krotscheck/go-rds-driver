@@ -16,7 +16,7 @@ func Test_Statement(t *testing.T) {
 	Convey("Statement", t, func() {
 		contrl := gomock.NewController(t)
 		d := rds.NewDriver()
-		mockRDS := NewMockRDSDataServiceAPI(contrl)
+		mockRDS := NewMockAWSClientInterface(contrl)
 		ExpectWakeup(mockRDS, conf)
 
 		connector := rds.NewConnector(d, mockRDS, conf)
