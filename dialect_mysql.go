@@ -87,27 +87,9 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 		return func(field types.Field) (interface{}, error) {
 			return uint64(field.(*types.FieldMemberLongValue).Value), nil
 		}
-	case "TINYINT":
-		fallthrough
-	case "SMALLINT":
-		fallthrough
-	case "MEDIUMINT":
-		fallthrough
-	case "INT":
-		fallthrough
-	case "BIGINT":
-		return func(field types.Field) (interface{}, error) {
-			return field.(*types.FieldMemberLongValue).Value, nil
-		}
 	case "DECIMAL":
 		return func(field types.Field) (interface{}, error) {
 			return strconv.ParseFloat(field.(*types.FieldMemberStringValue).Value, 64)
-		}
-	case "FLOAT":
-		fallthrough
-	case "DOUBLE":
-		return func(field types.Field) (interface{}, error) {
-			return field.(*types.FieldMemberDoubleValue).Value, nil
 		}
 	case "BIT":
 		// Bit values appear to be returned as boolean values
@@ -116,20 +98,6 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 				return 1, nil
 			}
 			return 0, nil
-		}
-	case "TINYTEXT":
-		fallthrough
-	case "TEXT":
-		fallthrough
-	case "MEDIUMTEXT":
-		fallthrough
-	case "LONGTEXT":
-		fallthrough
-	case "CHAR":
-		fallthrough
-	case "VARCHAR":
-		return func(field types.Field) (interface{}, error) {
-			return field.(*types.FieldMemberStringValue).Value, nil
 		}
 	case "DATE":
 		return func(field types.Field) (interface{}, error) {
@@ -175,23 +143,9 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 			}
 			return strconv.Itoa(t.Year()), nil
 		}
-	case "BINARY":
-		fallthrough
-	case "VARBINARY":
-		fallthrough
-	case "TINYBLOB":
-		fallthrough
-	case "BLOB":
-		fallthrough
-	case "MEDIUMBLOB":
-		fallthrough
-	case "LONGBLOB":
-		return func(field types.Field) (interface{}, error) {
-			return field.(*types.FieldMemberBlobValue).Value, nil
-		}
 	}
 
-	return ConversionFallback()
+	return ConvertDefaults()
 }
 
 // IsIsolationLevelSupported for mysql?

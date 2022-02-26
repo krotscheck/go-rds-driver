@@ -72,37 +72,9 @@ func (d *DialectPostgres) MigrateQuery(query string, args []driver.NamedValue) (
 // GetFieldConverter knows how to parse response data.
 func (d *DialectPostgres) GetFieldConverter(columnType string) FieldConverter {
 	switch strings.ToLower(columnType) {
-	case "serial":
-		return func(field types.Field) (interface{}, error) {
-			return field.(*types.FieldMemberLongValue).Value, nil
-		}
-	case "bool":
-		return func(field types.Field) (interface{}, error) {
-			return field.(*types.FieldMemberBooleanValue).Value, nil
-		}
-	case "bpchar":
-		fallthrough
-	case "varchar":
-		fallthrough
-	case "text":
-		return func(field types.Field) (interface{}, error) {
-			return field.(*types.FieldMemberStringValue).Value, nil
-		}
-	case "int2":
-		fallthrough
-	case "int4":
-		fallthrough
-	case "int8":
-		return func(field types.Field) (interface{}, error) {
-			return field.(*types.FieldMemberLongValue).Value, nil
-		}
 	case "numeric":
 		return func(field types.Field) (interface{}, error) {
 			return strconv.ParseFloat(field.(*types.FieldMemberStringValue).Value, 64)
-		}
-	case "float4":
-		return func(field types.Field) (interface{}, error) {
-			return field.(*types.FieldMemberDoubleValue).Value, nil
 		}
 	case "date":
 		return func(field types.Field) (interface{}, error) {
@@ -136,7 +108,7 @@ func (d *DialectPostgres) GetFieldConverter(columnType string) FieldConverter {
 		}
 	}
 
-	return ConversionFallback()
+	return ConvertDefaults()
 }
 
 // IsIsolationLevelSupported for postgres?
