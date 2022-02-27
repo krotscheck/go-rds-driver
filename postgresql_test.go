@@ -25,8 +25,7 @@ const PostGreSQLCreateTableQuery = "CREATE TABLE IF NOT EXISTS all_types (" +
 	"sql_decimal DECIMAL," +
 	"sql_numeric NUMERIC(5,2)," +
 	"sql_real REAL," +
-	//"sql_byte BYTE," +
-
+	"sql_byte BYTEA," +
 	"sql_date DATE NULL," +
 	"sql_time TIME NULL," +
 	//"sql_timestampz TIMESTAMPZ NULL," +
@@ -48,6 +47,7 @@ type TestPostgreSQLRow struct {
 	Decimal   float64
 	Numeric   float64
 	Real      float64
+	Byte      []byte
 	Date      string
 	Time      string
 	Timestamp string
@@ -69,6 +69,7 @@ func NewTestPostgreSQLRow() *TestPostgreSQLRow {
 		Decimal:   2.22,
 		Numeric:   23,
 		Real:      33,
+		Byte:      bytes,
 		Date:      time.Now().Format("2006-01-02"),
 		Time:      time.Now().Format("15:04:05"),
 		Timestamp: time.Now().Format("2006-01-02 15:04:05"),
@@ -91,6 +92,7 @@ func (r *TestPostgreSQLRow) Scan(row *sql.Rows) error {
 		&r.Decimal,   //Decimal   float64
 		&r.Numeric,   //Numeric   float64
 		&r.Real,      //Real      float64
+		&r.Byte,      //Byte      []byte
 		&r.Date,      //Date      string
 		&r.Time,      //Time      string
 		&r.Timestamp, //Timestamp string
@@ -110,6 +112,7 @@ func (r *TestPostgreSQLRow) Insert(db *sql.DB) (sql.Result, error) {
 		r.Decimal,   //Decimal   float64
 		r.Numeric,   //Numeric   float64
 		r.Real,      //Real      float64
+		r.Byte,      //Byte      []byte
 		r.Date,      //Date      string
 		r.Time,      //Time      string
 		r.Timestamp, //Timestamp string
@@ -118,9 +121,9 @@ func (r *TestPostgreSQLRow) Insert(db *sql.DB) (sql.Result, error) {
 		"sql_boolean," +
 		"sql_char,sql_varchar,sql_text," +
 		"sql_small_int,sql_medium_int,sql_int," +
-		"sql_decimal,sql_numeric,sql_real," +
+		"sql_decimal,sql_numeric,sql_real,sql_byte," +
 		"sql_date,sql_time,sql_timestamp) " +
-		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::date,$12::time,$13::date)"
+		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::date,$13::time,$14::date)"
 	return db.Exec(query, params...)
 }
 
