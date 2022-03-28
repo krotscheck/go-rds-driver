@@ -34,6 +34,9 @@ vet: reports
 lint: reports
 	golint ./...
 
+tidy:
+	go mod tidy -compat=1.18
+
 sec: reports
 	gosec ./...
 
