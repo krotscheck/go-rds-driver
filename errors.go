@@ -7,3 +7,6 @@ var ErrNoMixedParams = fmt.Errorf("please do not mix ordinal and named parameter
 
 // ErrClosed indicates that the connection is closed
 var ErrClosed = fmt.Errorf("this connection is closed")
+
+// ErrInvalidDSNScheme for when the dsn doesn't match rds://
+var ErrInvalidDSNScheme = fmt.Errorf("this driver requires a DSN scheme of rds://")

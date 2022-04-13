@@ -12,11 +12,8 @@ import (
 
 func Test_Connection(t *testing.T) {
 	d := rds.NewDriver()
-	dsn, err := TestMysqlConfig.ToDSN()
+	dsn := TestMysqlConfig.ToDSN()
 	ctx := context.Background()
-	if err != nil {
-		t.Fatal(err)
-	}
 	connector, err := d.OpenConnector(dsn)
 	if err != nil {
 		t.Fatal(err)

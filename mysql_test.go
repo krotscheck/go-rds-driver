@@ -275,10 +275,7 @@ func (r *TestMySQLRow) Insert(db *sql.DB) (sql.Result, error) {
 // Full suite of mysql tests, starting with research queries about which data types are supportyed
 func Test_Mysql(t *testing.T) {
 	// Create the RDS DB Instance
-	dsn, err := TestMysqlConfig.ToDSN()
-	if err != nil {
-		panic(err)
-	}
+	dsn := TestMysqlConfig.ToDSN()
 	rdsDB, err := sql.Open("rds", dsn)
 	if err != nil {
 		panic(err)

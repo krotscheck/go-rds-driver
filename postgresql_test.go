@@ -129,10 +129,7 @@ func (r *TestPostgreSQLRow) Insert(db *sql.DB) (sql.Result, error) {
 
 // Full suite of postgres tests, starting with research queries about which data types are supportyed
 func Test_Postgresql(t *testing.T) {
-	dsn, err := TestPostgresConfig.ToDSN()
-	if err != nil {
-		panic(err)
-	}
+	dsn := TestPostgresConfig.ToDSN()
 	rdsDB, err := sql.Open("rds", dsn)
 	if err != nil {
 		panic(err)

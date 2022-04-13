@@ -7,9 +7,13 @@ A golang sql Driver for the Amazon Aurora Serverless data api.
 
 ## Getting Started
 
-The `dsn` used in this driver is a JSON encoded string
-of the required aws-sdk parameters. The string may be generated
-by using the provided `Config` type and its `ToDSN` method.
+The `dsn` used in this driver follows the standard URL pattern, however given the complexity
+of the ARN input parameters required and reserved URI characters, we're forced to put
+all parameters - even the required ones - in the query parameters.
+```text
+rds://?resource_arn=...&secret_arn=...&database=...&aws_region=...
+```
+This complex string may be generated using the `Config` type and its `ToDSN` method.
 
 ```go
 conf := &rds.Config{
@@ -57,7 +61,7 @@ The RDS Postgres version supported is 10.14. Driver parity is tested using `gith
 ## Options
 This driver supports a variety of configuration options in the DSN, as follows:
 
-* `ParseTime`: Instead of returning the default `string` value of a date or time type,
+* `parse_time`: Instead of returning the default `string` value of a date or time type,
   the driver will convert it into `time.Time`
 
 
@@ -138,7 +142,7 @@ make clean checks
 Not everyone has the capital to pay for the VPC resources necessary to access Aurora Serverless directly. In the
 author's case, he likes to keep his personal projects as cheap as possible, and paying for all VPC service gateways,
 just so he can access an RDBMS, crossed the threshold of affordability. If you're looking to run a personal project
-and don't want to break the bank with "overhead" expenses, this driver's the way to go.
+and don't want to break the bank with "overhead" expenses such as VPN service mappings, this driver's the way to go.
 
 ## Acknowledgments
 This implementation inspired by [what came before](https://github.com/graveyard/rds/tree/birthday).
