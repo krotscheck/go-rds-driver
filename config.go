@@ -21,6 +21,7 @@ type Config struct {
 	Database    string
 	AWSRegion   string
 	ParseTime   bool
+	Custom      map[string][]string
 }
 
 // ToDSN converts the config to a DSN string
@@ -32,12 +33,20 @@ func (o *Config) ToDSN() string {
 	v.Add(keyAWSRegion, o.AWSRegion)
 	v.Add(keyParseTime, strconv.FormatBool(o.ParseTime))
 
+	for k, values := range o.Custom {
+		for _, value := range values {
+			v.Add(k, value)
+		}
+	}
+
 	return fmt.Sprintf("%s://?%s", DRIVERNAME, v.Encode())
 }
 
 // NewConfigFromDSN assumes that the DSN is a JSON-encoded string
 func NewConfigFromDSN(dsn string) (conf *Config, err error) {
-	conf = &Config{}
+	conf = &Config{
+		Custom: map[string][]string{},
+	}
 
 	u, err := url.Parse(dsn)
 	if err != nil {
@@ -51,14 +60,25 @@ func NewConfigFromDSN(dsn string) (conf *Config, err error) {
 
 	// All the actual data is in the Query
 	values := u.Query()
-	conf.ResourceArn = values.Get(keyResourceARN)
-	conf.SecretArn = values.Get(keySecretARN)
-	conf.Database = values.Get(keyDatabase)
-	conf.AWSRegion = values.Get(keyAWSRegion)
-
-	// Swallow the error here because default is fine.
-	parseTime, _ := strconv.ParseBool(values.Get(keyParseTime))
-	conf.ParseTime = parseTime
+	for k, vs := range values {
+		switch k {
+		case keyResourceARN:
+			conf.ResourceArn = values.Get(keyResourceARN)
+		case keySecretARN:
+			conf.SecretArn = values.Get(keySecretARN)
+		case keyDatabase:
+			conf.Database = values.Get(keyDatabase)
+		case keyAWSRegion:
+			conf.AWSRegion = values.Get(keyAWSRegion)
+		case keyParseTime:
+			// Swallow the error here because default is fine.
+			parseTime, _ := strconv.ParseBool(values.Get(keyParseTime))
+			conf.ParseTime = parseTime
+		default:
+			// Anything we don't know, store in the custom fields.
+			conf.Custom[k] = vs
+		}
+	}
 
 	return
 }
@@ -70,5 +90,6 @@ func NewConfig(resourceARN string, secretARN string, database string, awsRegion 
 		SecretArn:   secretARN,
 		Database:    database,
 		AWSRegion:   awsRegion,
+		Custom:      map[string][]string{},
 	}
 }

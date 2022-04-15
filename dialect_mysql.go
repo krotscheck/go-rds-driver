@@ -14,6 +14,8 @@ import (
 
 var ordinalRegex = regexp.MustCompile("\\?{1}")
 
+const DialectTypeMysql DialectType = "mysql"
+
 // NewMySQL dialect from our configuration
 func NewMySQL(config *Config) Dialect {
 	return &DialectMySQL{parseTime: config.ParseTime}
@@ -22,6 +24,11 @@ func NewMySQL(config *Config) Dialect {
 // DialectMySQL for version 5.7
 type DialectMySQL struct {
 	parseTime bool
+}
+
+// Type returns that this is a MySQL database.
+func (d *DialectMySQL) Type() DialectType {
+	return DialectTypeMysql
 }
 
 // MigrateQuery converts a mysql query into an RDS stateement.
