@@ -25,6 +25,9 @@ client_mocks_test.go:
 test_deps:
 	go install gotest.tools/gotestsum@v1.7.0
 	go install github.com/golang/mock/mockgen@v1.6.0
+	go install github.com/axw/gocov/gocov@v1.0.0
+	go install github.com/AlekSi/gocov-xml@v1.0.0
+	go install github.com/matm/gocov-html@latest
 
 test: test_deps reports/coverage.xml reports/html/index.html
 

@@ -64,6 +64,20 @@ This driver supports a variety of configuration options in the DSN, as follows:
 * `parse_time`: Instead of returning the default `string` value of a date or time type,
   the driver will convert it into `time.Time`
 
+## Using your own RDS Client
+
+golang's sql package interfaces provide a challenge, as it's quite difficult to capture all the configuration options
+available in an AWS Configuration instance in a DSN. For this, please construct your own client and create a Connector,
+then use that connector with the `sql.OpenDB()` method.
+
+```
+rdsDriver := rds.NewDriver()
+rdsConfig := rds.NewConfig(...)
+rdsAWSClient := rdsdata.NewFromConfig(...)
+rdsConnector := rds.NewConnector(rdsDriver, rdsAWSClient, rdsConfig)
+
+db := sql.OpenDB(rdsConnector)
+```
 
 ## Usage with Gorm
 

@@ -11,13 +11,16 @@ import (
 // DRIVERNAME is used when configuring your dialector
 const DRIVERNAME = "rds"
 
+var _ driver.Driver = (*Driver)(nil)        // explicit compile time type check
+var _ driver.DriverContext = (*Driver)(nil) // explicit compile time type check
+
 // NewDriver creates a new driver instance for RDS
 func NewDriver() *Driver {
 	return &Driver{}
 }
 
 // Driver implements the driver.Driver interface for RDS
-type Driver struct {}
+type Driver struct{}
 
 // Open returns a new connection to the database.
 func (r *Driver) Open(name string) (driver.Conn, error) {
@@ -29,7 +32,7 @@ func (r *Driver) Open(name string) (driver.Conn, error) {
 }
 
 // OpenConnector must parse the name in the same format that Driver.Open parses the name parameter.
-func (r *Driver) OpenConnector(dsn string) (*Connector, error) {
+func (r *Driver) OpenConnector(dsn string) (driver.Connector, error) {
 	conf, err := NewConfigFromDSN(dsn)
 	if err != nil {
 		return nil, err
