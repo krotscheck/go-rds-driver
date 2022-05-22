@@ -78,7 +78,7 @@ func NewTestPostgreSQLRow() *TestPostgreSQLRow {
 	return t
 }
 
-// Scan applies the results of an SQL query to this row
+// Scan applies the results of an SQL queries to this row
 func (r *TestPostgreSQLRow) Scan(row *sql.Rows) error {
 	return row.Scan(
 		&r.ID,        //ID         int32
@@ -99,7 +99,7 @@ func (r *TestPostgreSQLRow) Scan(row *sql.Rows) error {
 	)
 }
 
-// Insert applies the results of an SQL query to this row
+// Insert applies the results of an SQL queries to this row
 func (r *TestPostgreSQLRow) Insert(db *sql.DB) (sql.Result, error) {
 	params := []interface{}{
 		r.Boolean,   //Boolean   bool
@@ -179,6 +179,12 @@ func Test_Postgresql(t *testing.T) {
 			So(row, ShouldNotBeNil)
 
 			row, err = localDB.Query("SELECT 1")
+			So(err, ShouldBeNil)
+			So(row, ShouldNotBeNil)
+		})
+
+		Convey("Multi Statement", func() {
+			row, err := rdsDB.Query("SELECT 1; SELECT 2;")
 			So(err, ShouldBeNil)
 			So(row, ShouldNotBeNil)
 		})

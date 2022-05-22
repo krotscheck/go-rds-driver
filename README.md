@@ -21,6 +21,8 @@ conf := &rds.Config{
     SecretArn:   "...",
     Database:    "...",
     AWSRegion:   "...",
+	SplitMulti:  false,
+	ParseTime:   true,
 }
 dsn, err := conf.ToDSN()
 
@@ -63,6 +65,9 @@ This driver supports a variety of configuration options in the DSN, as follows:
 
 * `parse_time`: Instead of returning the default `string` value of a date or time type,
   the driver will convert it into `time.Time`
+* `split_multi`: This option will automatically split all SQL statements by the default
+  delimiter `;` and submit them to the API as separate requests. Enable this
+  for uses with large migration statements.
 
 ## Using your own RDS Client
 

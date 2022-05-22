@@ -13,8 +13,8 @@ fmt:
 	go fmt ./...
 
 clean:
-	rm -rf ./reports
-	rm ./client_mocks_test.go
+	rm -rf ./reports || true
+	rm ./client_mocks_test.go || true
 
 reports:
 	mkdir -p ./reports

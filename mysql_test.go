@@ -163,7 +163,7 @@ func NewTestMySQLRow() *TestMySQLRow {
 	return t
 }
 
-// Scan applies the results of an SQL query to this row
+// Scan applies the results of an SQL queries to this row
 func (r *TestMySQLRow) Scan(row *sql.Rows) error {
 	return row.Scan(
 		&r.ID,         //ID         int32
@@ -212,7 +212,7 @@ func (r *TestMySQLRow) Scan(row *sql.Rows) error {
 	)
 }
 
-// Insert applies the results of an SQL query to this row
+// Insert applies the results of an SQL queries to this row
 func (r *TestMySQLRow) Insert(db *sql.DB) (sql.Result, error) {
 	params := []interface{}{
 		r.TinyInt, r.SmallInt, r.MediumInt, r.Int, r.BigInt,
@@ -335,6 +335,12 @@ func Test_Mysql(t *testing.T) {
 			So(row, ShouldNotBeNil)
 
 			row, err = localDB.Query("SELECT 1")
+			So(err, ShouldBeNil)
+			So(row, ShouldNotBeNil)
+		})
+
+		Convey("Multi Statement", func() {
+			row, err := rdsDB.Query("SELECT 1; SELECT 2;")
 			So(err, ShouldBeNil)
 			So(row, ShouldNotBeNil)
 		})

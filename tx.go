@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
 )
 
+var _ driver.Tx = (*Tx)(nil) // explicit compile time type check
+
 // NewTx creates a new transaction
 func NewTx(transactionID *string, conn *Connection) driver.Tx {
 	return &Tx{

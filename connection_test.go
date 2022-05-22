@@ -187,7 +187,9 @@ func Test_Connection(t *testing.T) {
 			mockRDS := NewMockAWSClientInterface(ctrl)
 
 			Convey("Closed", func() {
-				c := rds.NewConnection(ctx, mockRDS, "resourceARN", "secretARN", "database", &rds.DialectMySQL{})
+				c := rds.NewConnection(ctx, mockRDS, &rds.Config{
+					ResourceArn: "resourceARN", SecretArn: "secretARN", Database: "database",
+				}, &rds.DialectMySQL{})
 				conn, ok := c.(*rds.Connection)
 				So(ok, ShouldBeTrue)
 				err := conn.Close()
@@ -196,22 +198,30 @@ func Test_Connection(t *testing.T) {
 			})
 
 			Convey("Misconfigured", func() {
-				c := rds.NewConnection(ctx, mockRDS, "", "secretARN", "database", &rds.DialectMySQL{})
+				c := rds.NewConnection(ctx, mockRDS, &rds.Config{
+					SecretArn: "secretARN", Database: "database",
+				}, &rds.DialectMySQL{})
 				conn, ok := c.(*rds.Connection)
 				So(ok, ShouldBeTrue)
 				So(conn.IsValid(), ShouldBeFalse)
 
-				c = rds.NewConnection(ctx, mockRDS, "resourceARN", "", "database", &rds.DialectMySQL{})
+				c = rds.NewConnection(ctx, mockRDS, &rds.Config{
+					ResourceArn: "resourceARN", Database: "database",
+				}, &rds.DialectMySQL{})
 				conn, ok = c.(*rds.Connection)
 				So(ok, ShouldBeTrue)
 				So(conn.IsValid(), ShouldBeFalse)
 
-				c = rds.NewConnection(ctx, mockRDS, "resourceARN", "secretARN", "", &rds.DialectMySQL{})
+				c = rds.NewConnection(ctx, mockRDS, &rds.Config{
+					ResourceArn: "resourceARN", SecretArn: "secretARN",
+				}, &rds.DialectMySQL{})
 				conn, ok = c.(*rds.Connection)
 				So(ok, ShouldBeTrue)
 				So(conn.IsValid(), ShouldBeFalse)
 
-				c = rds.NewConnection(ctx, mockRDS, "resourceARN", "secretARN", "database", &rds.DialectMySQL{})
+				c = rds.NewConnection(ctx, mockRDS, &rds.Config{
+					ResourceArn: "resourceARN", SecretArn: "secretARN", Database: "database",
+				}, &rds.DialectMySQL{})
 				conn, ok = c.(*rds.Connection)
 				So(ok, ShouldBeTrue)
 				So(conn.IsValid(), ShouldBeTrue)

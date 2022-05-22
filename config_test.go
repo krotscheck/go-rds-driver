@@ -33,13 +33,14 @@ func Test_Config(t *testing.T) {
 	})
 
 	Convey("Custom Parameters", t, func() {
-		dsn := "rds://?aws_region=region&database=database&parse_time=false&resource_arn=resourceARN&secret_arn=secretARN&x-custom-variable=custom1&x-custom-variable=custom2"
+		dsn := "rds://?aws_region=region&database=database&parse_time=false&resource_arn=resourceARN&secret_arn=secretARN&split_multi=true&x-custom-variable=custom1&x-custom-variable=custom2"
 		conf, err := rds.NewConfigFromDSN(dsn)
 		So(err, ShouldBeNil)
 		So(conf.ResourceArn, ShouldEqual, "resourceARN")
 		So(conf.SecretArn, ShouldEqual, "secretARN")
 		So(conf.Database, ShouldEqual, "database")
 		So(conf.AWSRegion, ShouldEqual, "region")
+		So(conf.SplitMulti, ShouldEqual, true)
 		So(conf.Custom["x-custom-variable"], ShouldContain, "custom1")
 		So(conf.Custom["x-custom-variable"], ShouldContain, "custom2")
 

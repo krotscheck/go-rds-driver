@@ -14,16 +14,9 @@ import (
 
 var postgresRegex = regexp.MustCompile("\\$([0-9]+)")
 
-const DialectTypePostgres DialectType = "postgres"
-
 // NewPostgres dialect from our configuration
 func NewPostgres(config *Config) Dialect {
 	return &DialectPostgres{parseTime: config.ParseTime}
-}
-
-// Type returns that this is a MySQL database.
-func (d *DialectPostgres) Type() DialectType {
-	return DialectTypePostgres
 }
 
 // DialectPostgres is for postgres 10.14 as supported by aurora serverless

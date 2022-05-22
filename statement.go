@@ -7,18 +7,23 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
 )
 
+var _ driver.Stmt = (*Statement)(nil)             // explicit compile time type check
+var _ driver.StmtExecContext = (*Statement)(nil)  // explicit compile time type check
+var _ driver.StmtQueryContext = (*Statement)(nil) // explicit compile time type check
+//var _ driver.NamedValueChecker = (*Statement)(nil) // explicit compile time type check
+
 // NewStatement for the provided connection
-func NewStatement(_ context.Context, connection *Connection, sql string) *Statement {
+func NewStatement(_ context.Context, connection *Connection, sql []string) *Statement {
 	return &Statement{
-		conn:  connection,
-		query: sql,
+		conn:    connection,
+		queries: sql,
 	}
 }
 
-// Statement encapsulates a single RDS query statement
+// Statement encapsulates a single RDS queries statement
 type Statement struct {
-	conn  *Connection
-	query string
+	conn    *Connection
+	queries []string
 }
 
 // Close closes the statement.
@@ -35,44 +40,43 @@ func (s *Statement) NumInput() int {
 	return -1
 }
 
-// Exec executes a query that doesn't return rows, such as an INSERT or UPDATE.
+// Exec executes a queries that doesn't return rows, such as an INSERT or UPDATE.
 func (s *Statement) Exec(values []driver.Value) (driver.Result, error) {
 	args := s.ConvertOrdinal(values)
-	out, err := s.executeStatement(context.Background(), s.query, args)
-	if err != nil {
-		return nil, err
-	}
-	return NewResult(out), nil
+	return s.ExecContext(context.Background(), args)
 }
 
-// ExecContext executes a query that doesn't return rows, such as an INSERT or UPDATE.
+// ExecContext executes a queries that doesn't return rows, such as an INSERT or UPDATE.
 func (s *Statement) ExecContext(ctx context.Context, args []driver.NamedValue) (driver.Result, error) {
-	out, err := s.executeStatement(ctx, s.query, args)
-	if err != nil {
-		return nil, err
+	var output []*rdsdata.ExecuteStatementOutput
+	for _, query := range s.queries {
+		out, err := s.executeStatement(ctx, query, args)
+		if err != nil {
+			return nil, err
+		}
+		output = append(output, out)
 	}
-	return NewResult(out), nil
+	return NewResult(output), nil
 }
 
-// Query executes a query that may return rows, such as a SELECT.
+// Query executes a queries that may return rows, such as a SELECT.
 func (s *Statement) Query(values []driver.Value) (driver.Rows, error) {
-	// We're trying to execute this as an ordinal query, so convert it.
+	// We're trying to execute this as an ordinal queries, so convert it.
 	args := s.ConvertOrdinal(values)
-
-	out, err := s.executeStatement(context.Background(), s.query, args)
-	if err != nil {
-		return nil, err
-	}
-	return NewRows(s.conn.dialect, out), nil
+	return s.QueryContext(context.Background(), args)
 }
 
-// QueryContext executes a query that may return rows, such as a SELECT.
+// QueryContext executes a queries that may return rows, such as a SELECT.
 func (s *Statement) QueryContext(ctx context.Context, args []driver.NamedValue) (driver.Rows, error) {
-	out, err := s.executeStatement(ctx, s.query, args)
-	if err != nil {
-		return nil, err
+	var output []*rdsdata.ExecuteStatementOutput
+	for _, query := range s.queries {
+		out, err := s.executeStatement(ctx, query, args)
+		if err != nil {
+			return nil, err
+		}
+		output = append(output, out)
 	}
-	return NewRows(s.conn.dialect, out), nil
+	return NewRows(s.conn.dialect, output), nil
 }
 
 // ConvertOrdinal converts a list of Values to Ordinal NamedValues

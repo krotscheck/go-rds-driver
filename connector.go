@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+var _ driver.Connector = (*Connector)(nil) // explicit compile time type check
+
 // NewConnector from the provided configuration fields
 func NewConnector(d driver.Driver, client AWSClientInterface, conf *Config) *Connector {
 	return &Connector{
@@ -41,7 +43,7 @@ func (r *Connector) Connect(ctx context.Context) (driver.Conn, error) {
 		r.lastSuccessfulWakeup = time.Now()
 	}
 
-	return NewConnection(ctx, r.rds, r.conf.ResourceArn, r.conf.SecretArn, r.conf.Database, r.dialect), nil
+	return NewConnection(ctx, r.rds, r.conf, r.dialect), nil
 }
 
 // Driver returns the underlying Driver of the Connector, mainly to maintain compatibility with the Driver method on sql.DB.

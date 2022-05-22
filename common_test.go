@@ -43,7 +43,9 @@ func init() {
 	}
 
 	TestMysqlConfig = rds.NewConfig(conf.MysqlARN, conf.SecretARN, conf.MysqlDBName, conf.AWSRegion)
+	TestMysqlConfig.SplitMulti = true
 	TestPostgresConfig = rds.NewConfig(conf.PostgresARN, conf.SecretARN, conf.PostgresDBName, conf.AWSRegion)
+	TestPostgresConfig.SplitMulti = true
 }
 
 // ExpectWakeup can be used whenever we're mocking out a new connection

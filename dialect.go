@@ -9,8 +9,6 @@ import (
 	"time"
 )
 
-type DialectType string
-
 // FieldConverter is a function that converts the passed result row field into the expected type.
 type FieldConverter func(field types.Field) (interface{}, error)
 
@@ -22,8 +20,6 @@ type Dialect interface {
 	GetFieldConverter(columnType string) FieldConverter
 	// IsIsolationLevelSupported for this dialect?
 	IsIsolationLevelSupported(level driver.IsolationLevel) bool
-	// Type returns the underlying database detected from RDS.
-	Type() DialectType
 }
 
 // ConvertNamedValues converts passed driver.NamedValue instances into RDS SQLParameters
