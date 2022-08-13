@@ -3,10 +3,11 @@ package rds
 import (
 	"database/sql/driver"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
-	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
 	"reflect"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
 )
 
 // FieldConverter is a function that converts the passed result row field into the expected type.
@@ -124,7 +125,8 @@ func ConvertNamedValue(arg driver.NamedValue) (value types.SqlParameter, err err
 		}
 	case time.Time:
 		value = types.SqlParameter{
-			Name: &name,
+			Name:     &name,
+			TypeHint: types.TypeHintTimestamp,
 			Value: &types.FieldMemberStringValue{
 				Value: t.Format("2006-01-02 15:04:05.999"),
 			},
