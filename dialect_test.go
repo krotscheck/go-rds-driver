@@ -2,11 +2,12 @@ package rds_test
 
 import (
 	"database/sql/driver"
+	"testing"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
-	"github.com/krotscheck/go-rds-driver"
+	"github.com/jonbretman/go-rds-driver"
 	. "github.com/smartystreets/goconvey/convey"
-	"testing"
 )
 
 func Test_Dialect(t *testing.T) {

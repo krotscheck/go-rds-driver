@@ -1,9 +1,10 @@
 package rds_test
 
 import (
-	"github.com/krotscheck/go-rds-driver"
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+
+	"github.com/jonbretman/go-rds-driver"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func Test_Config(t *testing.T) {

@@ -1,4 +1,4 @@
-module github.com/krotscheck/go-rds-driver
+module github.com/jonbretman/go-rds-driver
 
 go 1.18
 

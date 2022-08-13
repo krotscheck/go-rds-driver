@@ -2,12 +2,13 @@ package rds_test
 
 import (
 	"database/sql/driver"
-	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
-	"github.com/aws/smithy-go/middleware"
-	"github.com/krotscheck/go-rds-driver"
-	. "github.com/smartystreets/goconvey/convey"
 	"io"
 	"testing"
+
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
+	"github.com/aws/smithy-go/middleware"
+	"github.com/jonbretman/go-rds-driver"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func Test_Rows(t *testing.T) {

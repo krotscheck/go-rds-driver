@@ -2,12 +2,13 @@ package rds_test
 
 import (
 	"context"
+	"os"
+	"strings"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
 	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
-	"github.com/krotscheck/go-rds-driver"
-	"os"
-	"strings"
+	"github.com/jonbretman/go-rds-driver"
 )
 
 var TestMysqlConfig *rds.Config

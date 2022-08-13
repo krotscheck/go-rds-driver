@@ -3,10 +3,11 @@ package rds_test
 import (
 	"context"
 	"database/sql/driver"
-	"github.com/golang/mock/gomock"
-	"github.com/krotscheck/go-rds-driver"
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/jonbretman/go-rds-driver"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func Test_Statement(t *testing.T) {
