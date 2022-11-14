@@ -23,11 +23,11 @@ client_mocks_test.go:
 	go generate ./...
 
 test_deps:
-	go install gotest.tools/gotestsum@v1.7.0
+	go install gotest.tools/gotestsum@v1.8.2
 	go install github.com/golang/mock/mockgen@v1.6.0
-	go install github.com/axw/gocov/gocov@v1.0.0
-	go install github.com/AlekSi/gocov-xml@v1.0.0
-	go install github.com/matm/gocov-html@latest
+	go install github.com/axw/gocov/gocov@v1.1.0
+	go install github.com/AlekSi/gocov-xml@v1.1.0
+	go install github.com/matm/gocov-html/cmd/gocov-html@v1.1.1
 
 test: test_deps reports/coverage.xml reports/html/index.html
 
@@ -38,7 +38,7 @@ lint: reports
 	golint ./...
 
 tidy:
-	go mod tidy -compat=1.18
+	go mod tidy -compat=1.19
 
 sec: reports
 	gosec ./...
