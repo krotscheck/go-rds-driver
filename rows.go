@@ -63,7 +63,7 @@ func (r *Rows) setResultIndex(i int) {
 	r.columnNames = make([]string, len(curr.ColumnMetadata))
 	for i, col := range curr.ColumnMetadata {
 		r.converters[i] = r.dialect.GetFieldConverter(*col.TypeName)
-		r.columnNames[i] = *col.Name
+		r.columnNames[i] = *col.Label
 	}
 }
 
