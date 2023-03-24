@@ -4,7 +4,7 @@ resource "random_password" "aurora_password" {
   special = false
   upper = true
   lower = true
-  number = true
+  numeric = true
   min_lower = 1
   min_numeric = 1
   min_upper = 1

@@ -55,3 +55,6 @@ reports/coverage.xml: reports/coverage.out
 	gocov convert ./reports/coverage.out | gocov-xml > ./reports/coverage.xml
 
 checks: test vet lint sec
+
+update:
+	go get -t -u ./...

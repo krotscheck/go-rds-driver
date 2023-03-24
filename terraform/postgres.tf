@@ -1,7 +1,7 @@
 resource "aws_rds_cluster" "test_postgresql" {
   cluster_identifier = "postgresql"
   engine = "aurora-postgresql"
-  engine_version = "10.14"
+  engine_version = "10.21"
   engine_mode = "serverless"
   database_name = "go_rds_driver_postgresql"
   master_username = "root"
