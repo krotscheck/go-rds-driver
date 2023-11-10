@@ -51,7 +51,7 @@ func init() {
 // ExpectWakeup can be used whenever we're mocking out a new connection
 func ExpectWakeup(mockRDS *MockAWSClientInterface, conf *rds.Config) {
 	mockRDS.EXPECT().
-		ExecuteStatement(context.Background(), &rdsdata.ExecuteStatementInput{
+		ExecuteStatement(context.TODO(), &rdsdata.ExecuteStatementInput{
 			Database:    aws.String("database"),
 			ResourceArn: aws.String("resourceARN"),
 			SecretArn:   aws.String("secretARN"),

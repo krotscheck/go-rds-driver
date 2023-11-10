@@ -11,7 +11,7 @@ services:
     ports:
       - "3306:3306"
   postgresql:
-    image: postgres:10.14
+    image: postgres:11.18
     hostname: postgresql-test
     container_name: postgresql-test
     environment:
