@@ -38,7 +38,7 @@ lint: reports
 	golint ./...
 
 tidy:
-	go mod tidy -compat=1.21
+	go mod tidy -compat=1.22
 
 sec: reports
 	gosec ./...

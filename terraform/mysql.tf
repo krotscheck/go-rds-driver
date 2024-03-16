@@ -2,7 +2,7 @@
 resource "aws_rds_cluster" "test_mysql" {
   cluster_identifier = "mysql"
   engine = "aurora-mysql"
-  engine_version = "5.7.mysql_aurora.2.11.3"
+  engine_version = "5.7.mysql_aurora.2.11.4"
   engine_mode = "serverless"
   database_name = "go_rds_driver_mysql"
   master_username = "root"
