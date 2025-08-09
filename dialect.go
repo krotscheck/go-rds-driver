@@ -21,6 +21,8 @@ type Dialect interface {
 	GetFieldConverter(columnType string) FieldConverter
 	// IsIsolationLevelSupported for this dialect?
 	IsIsolationLevelSupported(level driver.IsolationLevel) bool
+	// GetTransactionSetupQuery returns the query to set up the transaction.
+	GetTransactionSetupQuery(opts driver.TxOptions) string
 }
 
 // ConvertNamedValues converts passed driver.NamedValue instances into RDS SQLParameters
