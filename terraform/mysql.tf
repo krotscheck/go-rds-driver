@@ -17,7 +17,7 @@ resource "aws_rds_cluster" "test_mysql" {
   serverlessv2_scaling_configuration {
     max_capacity = 64
     min_capacity = 1
-    seconds_until_auto_pause = 600
+    seconds_until_auto_pause = 300
   }
 }
 

@@ -1,7 +1,7 @@
 resource "aws_rds_cluster" "test_postgresql" {
   cluster_identifier = "postgresql"
   engine = "aurora-postgresql"
-  engine_version = "13.12"
+  engine_version = "13.18"
   engine_mode = "provisioned"
   database_name = "go_rds_driver_postgresql"
   master_username = "root"
@@ -16,7 +16,7 @@ resource "aws_rds_cluster" "test_postgresql" {
   serverlessv2_scaling_configuration {
     max_capacity = 64
     min_capacity = 1
-    seconds_until_auto_pause = 600
+    seconds_until_auto_pause = 300
   }
 }
 

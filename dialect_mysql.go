@@ -85,7 +85,11 @@ func (d *DialectMySQL) GetFieldConverter(columnType string) FieldConverter {
 		fallthrough
 	case "BIGINT UNSIGNED":
 		return func(field types.Field) (interface{}, error) {
-			return uint64(field.(*types.FieldMemberLongValue).Value), nil
+			longValue := field.(*types.FieldMemberLongValue).Value
+			if longValue < 0 {
+				return nil, fmt.Errorf("cannot convert negative value %d to uint64", longValue)
+			}
+			return uint64(longValue), nil
 		}
 	case "DECIMAL":
 		return func(field types.Field) (interface{}, error) {
