@@ -4,13 +4,14 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
-	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
+	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
 )
 
 var ordinalRegex = regexp.MustCompile("\\?{1}")
@@ -54,7 +55,7 @@ func (d *DialectMySQL) MigrateQuery(query string, args []driver.NamedValue) (*rd
 
 		idx := 0
 		query = ordinalRegex.ReplaceAllStringFunc(query, func(s string) string {
-			idx = idx + 1 // ordinal regex are one-indexed
+			idx++ // ordinal regex are one-indexed
 			return fmt.Sprintf(":%d", idx)
 		})
 

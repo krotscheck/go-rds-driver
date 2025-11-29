@@ -4,10 +4,11 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"fmt"
-	_ "github.com/jackc/pgx/v4/stdlib"
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"time"
+
+	_ "github.com/jackc/pgx/v4/stdlib"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 // A table with all data types
@@ -28,8 +29,8 @@ const PostGreSQLCreateTableQuery = "CREATE TABLE IF NOT EXISTS all_types (" +
 	"sql_byte BYTEA," +
 	"sql_date DATE NULL," +
 	"sql_time TIME NULL," +
-	//"sql_timestampz TIMESTAMPZ NULL," +
-	//"sql_interval INTERVAL NULL," +
+	// "sql_timestampz TIMESTAMPZ NULL," +
+	// "sql_interval INTERVAL NULL," +
 	"sql_timestamp TIMESTAMP NULL)"
 
 const PostgreSQLDropTableQuery = "DROP TABLE all_types;"
@@ -81,41 +82,41 @@ func NewTestPostgreSQLRow() *TestPostgreSQLRow {
 // Scan applies the results of an SQL queries to this row
 func (r *TestPostgreSQLRow) Scan(row *sql.Rows) error {
 	return row.Scan(
-		&r.ID,        //ID         int32
-		&r.Boolean,   //Boolean   bool
-		&r.Char,      //Char      string
-		&r.Varchar,   //Varchar   string
-		&r.Text,      //Text      string
-		&r.SmallInt,  //SmallInt  int8
-		&r.MediumInt, //MediumInt int32
-		&r.Bigint,    //Bigint    int64
-		&r.Decimal,   //Decimal   float64
-		&r.Numeric,   //Numeric   float64
-		&r.Real,      //Real      float64
-		&r.Byte,      //Byte      []byte
-		&r.Date,      //Date      string
-		&r.Time,      //Time      string
-		&r.Timestamp, //Timestamp string
+		&r.ID,        // ID         int32
+		&r.Boolean,   // Boolean   bool
+		&r.Char,      // Char      string
+		&r.Varchar,   // Varchar   string
+		&r.Text,      // Text      string
+		&r.SmallInt,  // SmallInt  int8
+		&r.MediumInt, // MediumInt int32
+		&r.Bigint,    // Bigint    int64
+		&r.Decimal,   // Decimal   float64
+		&r.Numeric,   // Numeric   float64
+		&r.Real,      // Real      float64
+		&r.Byte,      // Byte      []byte
+		&r.Date,      // Date      string
+		&r.Time,      // Time      string
+		&r.Timestamp, // Timestamp string
 	)
 }
 
 // Insert applies the results of an SQL queries to this row
 func (r *TestPostgreSQLRow) Insert(db *sql.DB) (sql.Result, error) {
 	params := []interface{}{
-		r.Boolean,   //Boolean   bool
-		r.Char,      //Char      string
-		r.Varchar,   //Varchar   string
-		r.Text,      //Text      string
-		r.SmallInt,  //SmallInt  int8
-		r.MediumInt, //MediumInt int32
-		r.Bigint,    //Bigint    int64
-		r.Decimal,   //Decimal   float64
-		r.Numeric,   //Numeric   float64
-		r.Real,      //Real      float64
-		r.Byte,      //Byte      []byte
-		r.Date,      //Date      string
-		r.Time,      //Time      string
-		r.Timestamp, //Timestamp string
+		r.Boolean,   // Boolean   bool
+		r.Char,      // Char      string
+		r.Varchar,   // Varchar   string
+		r.Text,      // Text      string
+		r.SmallInt,  // SmallInt  int8
+		r.MediumInt, // MediumInt int32
+		r.Bigint,    // Bigint    int64
+		r.Decimal,   // Decimal   float64
+		r.Numeric,   // Numeric   float64
+		r.Real,      // Real      float64
+		r.Byte,      // Byte      []byte
+		r.Date,      // Date      string
+		r.Time,      // Time      string
+		r.Timestamp, // Timestamp string
 	}
 	query := "INSERT INTO all_types (" +
 		"sql_boolean," +

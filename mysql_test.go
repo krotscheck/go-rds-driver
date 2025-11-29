@@ -4,10 +4,11 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 // A table with all data types
@@ -23,7 +24,7 @@ const MySQLCreateTableQuery = "CREATE TABLE IF NOT EXISTS `all_types` (" +
 	"`sql_decimal` DECIMAL(5,2)," +
 	"`sql_float` double," +
 	"`sql_double` DOUBLE," +
-	//"`sql_bit` BIT," +
+	// "`sql_bit` BIT," +
 	"`sql_boolean` TINYINT(2)," +
 	"`sql_char` CHAR," +
 	"`sql_varchar` VARCHAR(100)," +
@@ -74,7 +75,7 @@ type TestMySQLRow struct {
 	Decimal   float64
 	Float     float64
 	Double    float64
-	//Bit        []uint8
+	// Bit        []uint8
 	Boolean    bool
 	Char       string
 	Varchar    string
@@ -124,7 +125,7 @@ func NewTestMySQLRow() *TestMySQLRow {
 		Decimal:   5.11,
 		Float:     5.1111,
 		Double:    1234.5678,
-		//Bit:        []uint8{1},
+		// Bit:        []uint8{1},
 		Boolean:    true,
 		Char:       "1",
 		Varchar:    "varchar",
@@ -166,49 +167,49 @@ func NewTestMySQLRow() *TestMySQLRow {
 // Scan applies the results of an SQL queries to this row
 func (r *TestMySQLRow) Scan(row *sql.Rows) error {
 	return row.Scan(
-		&r.ID,         //ID         int32
-		&r.TinyInt,    //TinyInt    int8
-		&r.SmallInt,   //SmallInt   int8
-		&r.Mediumtext, //MediumInt  int8
-		&r.Int,        //Int        int8
-		&r.BigInt,     //BigInt     int8
-		&r.Decimal,    //Decimal    float64
-		&r.Float,      //Float      float64
-		&r.Double,     //Double     float64
-		//&r.Bit,        //Bit        []uint8
-		&r.Boolean,    //Boolean    tinyint(1)
-		&r.Char,       //Char       string
-		&r.Varchar,    //Varchar    string
-		&r.Binary,     //Binary     bool
-		&r.Varbinary,  //Varbinary  []byte
-		&r.Tinyblob,   //Tinyblob   []byte
-		&r.Blob,       //Blob       []byte
-		&r.Mediumblob, //Mediumblob []byte
-		&r.Longblob,   //Longblob   []byte
-		&r.Tinytext,   //Tinytext   string
-		&r.Text,       //Text       string
-		&r.Mediumtext, //Mediumtext string
-		&r.Enum,       //Enum       string
-		&r.Set,        //Set        string
-		&r.Date,       //Date       time.Time
-		&r.Time,       //Time       time.Time
-		&r.Datetime,   //Datetime   time.Time
-		&r.Timestamp,  //Timestamp  time.Time
-		&r.Year,       //Year       time.Time
-		&r.String,     //String     string
-		&r.Bytes,      //Bytes      []byte
-		&r.Byte,       //Byte       byte
-		&r.Int8,       //Int8       int8
-		&r.Int16,      //Int16      int16
-		&r.Int32,      //Int32      int32
-		&r.Int64,      //Int64      int64
-		&r.Uint,       //Uint       uint
-		&r.Uint8,      //Uint8      uint8
-		&r.Uint16,     //Uint16     uint16
-		&r.Uint32,     //Uint32     uint32
-		&r.Uint64,     //Uint64     uint64
-		&r.Float32,    //Float32    float32
-		&r.Float64,    //Float64    float64
+		&r.ID,         // ID         int32
+		&r.TinyInt,    // TinyInt    int8
+		&r.SmallInt,   // SmallInt   int8
+		&r.Mediumtext, // MediumInt  int8
+		&r.Int,        // Int        int8
+		&r.BigInt,     // BigInt     int8
+		&r.Decimal,    // Decimal    float64
+		&r.Float,      // Float      float64
+		&r.Double,     // Double     float64
+		// &r.Bit,     // Bit        []uint8
+		&r.Boolean,    // Boolean    tinyint(1)
+		&r.Char,       // Char       string
+		&r.Varchar,    // Varchar    string
+		&r.Binary,     // Binary     bool
+		&r.Varbinary,  // Varbinary  []byte
+		&r.Tinyblob,   // Tinyblob   []byte
+		&r.Blob,       // Blob       []byte
+		&r.Mediumblob, // Mediumblob []byte
+		&r.Longblob,   // Longblob   []byte
+		&r.Tinytext,   // Tinytext   string
+		&r.Text,       // Text       string
+		&r.Mediumtext, // Mediumtext string
+		&r.Enum,       // Enum       string
+		&r.Set,        // Set        string
+		&r.Date,       // Date       time.Time
+		&r.Time,       // Time       time.Time
+		&r.Datetime,   // Datetime   time.Time
+		&r.Timestamp,  // Timestamp  time.Time
+		&r.Year,       // Year       time.Time
+		&r.String,     // String     string
+		&r.Bytes,      // Bytes      []byte
+		&r.Byte,       // Byte       byte
+		&r.Int8,       // Int8       int8
+		&r.Int16,      // Int16      int16
+		&r.Int32,      // Int32      int32
+		&r.Int64,      // Int64      int64
+		&r.Uint,       // Uint       uint
+		&r.Uint8,      // Uint8      uint8
+		&r.Uint16,     // Uint16     uint16
+		&r.Uint32,     // Uint32     uint32
+		&r.Uint64,     // Uint64     uint64
+		&r.Float32,    // Float32    float32
+		&r.Float64,    // Float64    float64
 	)
 }
 
@@ -217,7 +218,7 @@ func (r *TestMySQLRow) Insert(db *sql.DB) (sql.Result, error) {
 	params := []interface{}{
 		r.TinyInt, r.SmallInt, r.MediumInt, r.Int, r.BigInt,
 		r.Decimal, r.Float, r.Double,
-		//r.Bit,
+		// r.Bit,
 		r.Boolean,
 		r.Char, r.Varchar,
 		r.Binary, r.Varbinary,
@@ -244,7 +245,7 @@ func (r *TestMySQLRow) Insert(db *sql.DB) (sql.Result, error) {
 	query := "INSERT INTO `all_types` SET" +
 		"`sql_tiny_int` = ?,`sql_small_int` = ?,`sql_medium_int` = ?,`sql_int` = ?,`sql_big_int` = ?," +
 		"`sql_decimal` = ?,`sql_float` = ?,`sql_double` = ?," +
-		//"`sql_bit` = ?," +
+		// "`sql_bit` = ?," +
 		"`sql_boolean` = ?," +
 		"`sql_char` = ?,`sql_varchar` = ?," +
 		"`sql_binary` = ?,`sql_varbinary` = ?," +

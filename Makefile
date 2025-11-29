@@ -37,6 +37,10 @@ vet: reports
 lint: reports
 	go tool golang.org/x/lint/golint ./...
 
+.PHONY: gocritic
+gocritic: reports
+	go tool github.com/go-critic/go-critic/cmd/gocritic check ./...
+
 .PHONY: sec
 sec: reports
 	gosec ./...
@@ -58,7 +62,7 @@ reports/coverage.xml: reports/coverage.out
 	go tool github.com/axw/gocov/gocov convert ./reports/coverage.out | go tool github.com/AlekSi/gocov-xml > ./reports/coverage.xml
 
 .PHONY: checks
-checks: test vet lint sec vulncheck
+checks: test vet lint gocritic sec vulncheck
 
 .PHONY: update
 update:

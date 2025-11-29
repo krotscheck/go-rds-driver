@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"strings"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/rdsdata"
 	"github.com/aws/aws-sdk-go-v2/service/rdsdata/types"
-	"strings"
 )
 
 var _ driver.Conn = (*Connection)(nil)               // explicit compile time type check
@@ -19,7 +20,7 @@ var _ driver.Pinger = (*Connection)(nil)             // explicit compile time ty
 var _ driver.QueryerContext = (*Connection)(nil)     // explicit compile time type check
 var _ driver.SessionResetter = (*Connection)(nil)    // explicit compile time type check
 var _ driver.Validator = (*Connection)(nil)          // explicit compile time type check
-//var _ driver.NamedValueChecker = (*Connection)(nil)  // explicit compile time type check
+// var _ driver.NamedValueChecker = (*Connection)(nil)  // explicit compile time type check
 
 // NewConnection that can make transaction and statement requests against RDS
 func NewConnection(ctx context.Context, rds AWSClientInterface, conf *Config, dialect Dialect) driver.Conn {
