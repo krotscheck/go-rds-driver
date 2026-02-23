@@ -29,9 +29,10 @@ const PostGreSQLCreateTableQuery = "CREATE TABLE IF NOT EXISTS all_types (" +
 	"sql_byte BYTEA," +
 	"sql_date DATE NULL," +
 	"sql_time TIME NULL," +
-	// "sql_timestampz TIMESTAMPZ NULL," +
+	"sql_timestamp TIMESTAMP NULL," +
+	"sql_timestamptz TIMESTAMPTZ NULL," +
 	// "sql_interval INTERVAL NULL," +
-	"sql_timestamp TIMESTAMP NULL)"
+	"sql_uuid UUID)"
 
 const PostgreSQLDropTableQuery = "DROP TABLE all_types;"
 
@@ -49,9 +50,11 @@ type TestPostgreSQLRow struct {
 	Numeric   float64
 	Real      float64
 	Byte      []byte
-	Date      string
-	Time      string
-	Timestamp string
+	Date        string
+	Time        string
+	Timestamp   string
+	Timestamptz string
+	UUID        string
 }
 
 // NewTestPostgreSQLRow to insert into the database
@@ -71,9 +74,11 @@ func NewTestPostgreSQLRow() *TestPostgreSQLRow {
 		Numeric:   23,
 		Real:      33,
 		Byte:      bytes,
-		Date:      time.Now().Format("2006-01-02"),
-		Time:      time.Now().Format("15:04:05"),
-		Timestamp: time.Now().Format("2006-01-02 15:04:05"),
+		Date:        time.Now().Format("2006-01-02"),
+		Time:        time.Now().Format("15:04:05"),
+		Timestamp:   time.Now().Format("2006-01-02 15:04:05.999999"),
+		Timestamptz: time.Now().Format("2006-01-02 15:04:05.999999-07:00"),
+		UUID:        "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
 	}
 
 	return t
@@ -94,9 +99,11 @@ func (r *TestPostgreSQLRow) Scan(row *sql.Rows) error {
 		&r.Numeric,   // Numeric   float64
 		&r.Real,      // Real      float64
 		&r.Byte,      // Byte      []byte
-		&r.Date,      // Date      string
-		&r.Time,      // Time      string
-		&r.Timestamp, // Timestamp string
+		&r.Date,        // Date        string
+		&r.Time,        // Time        string
+		&r.Timestamp,   // Timestamp   string
+		&r.Timestamptz, // Timestamptz string
+		&r.UUID,        // UUID        string
 	)
 }
 
@@ -114,17 +121,19 @@ func (r *TestPostgreSQLRow) Insert(db *sql.DB) (sql.Result, error) {
 		r.Numeric,   // Numeric   float64
 		r.Real,      // Real      float64
 		r.Byte,      // Byte      []byte
-		r.Date,      // Date      string
-		r.Time,      // Time      string
-		r.Timestamp, // Timestamp string
+		r.Date,        // Date        string
+		r.Time,        // Time        string
+		r.Timestamp,   // Timestamp   string
+		r.Timestamptz, // Timestamptz string
+		r.UUID,        // UUID        string
 	}
 	query := "INSERT INTO all_types (" +
 		"sql_boolean," +
 		"sql_char,sql_varchar,sql_text," +
 		"sql_small_int,sql_medium_int,sql_int," +
 		"sql_decimal,sql_numeric,sql_real,sql_byte," +
-		"sql_date,sql_time,sql_timestamp) " +
-		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::date,$13::time,$14::date)"
+		"sql_date,sql_time,sql_timestamp,sql_timestamptz,sql_uuid) " +
+		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::date,$13::time,$14::timestamp,$15::timestamptz,$16::uuid)"
 	return db.Exec(query, params...)
 }
 
@@ -234,6 +243,15 @@ func Test_Postgresql(t *testing.T) {
 
 					err := rdsRow.Scan(rdsRows)
 					So(err, ShouldBeNil)
+
+					// Normalize timestamptz to UTC since pgx returns local timezone
+					// while RDS Data API always returns UTC
+					rdsTs, err := time.Parse(time.RFC3339Nano, rdsRow.Timestamptz)
+					So(err, ShouldBeNil)
+					localTs, err := time.Parse(time.RFC3339Nano, localRow.Timestamptz)
+					So(err, ShouldBeNil)
+					rdsRow.Timestamptz = rdsTs.UTC().Format(time.RFC3339Nano)
+					localRow.Timestamptz = localTs.UTC().Format(time.RFC3339Nano)
 
 					So(rdsRow, ShouldResemble, localRow)
 				}
